@@ -44,3 +44,41 @@ jobs:
           exclude: |
             **/.htaccess
             api/**
+
+      - name: Send Success Email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: Deployment Successful - CRM Safar System
+          to: ashwanipandeytech@gmail.com, tusharmanusharma@gmail.com, Mail2aman168@gmail.com, pushpendradwivedi9@gmail.com, rohitsingh28dec@gmail.com
+          from: CRM CI/CD <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Deployment of CRM Safar System to stage was successful.
+            
+            Commit: ${{ github.sha }}
+            Workflow: ${{ github.workflow }}
+            Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Send Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: Deployment Failed - CRM Safar System
+          to: ashwanipandeytech@gmail.com, tusharmanusharma@gmail.com, Mail2aman168@gmail.com, pushpendradwivedi9@gmail.com, rohitsingh28dec@gmail.com
+          from: CRM CI/CD <${{ secrets.MAIL_USERNAME }}>
+          body: |
+            Deployment of CRM Safar System to stage failed. 
+            
+            Commit: ${{ github.sha }}
+            Workflow: ${{ github.workflow }}
+            Run URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            Please check the GitHub Actions logs for more details.
