@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse, PaginatedResponse } from '../models/api-response.model';
-import { Booking } from '../models/booking.model';
+import { Booking, CreateBookingDto } from '../models/booking.model';
 
 @Injectable({
   providedIn: 'root'
@@ -25,7 +25,15 @@ export class BookingService {
     return this.http.get<PaginatedResponse<Booking>>(this.apiUrl, { params: httpParams });
   }
 
-  createBooking(data: any): Observable<ApiResponse<Booking>> {
+  createBooking(data: CreateBookingDto): Observable<ApiResponse<Booking>> {
     return this.http.post<ApiResponse<Booking>>(this.apiUrl, data);
+  }
+
+  updateBooking(id: number | string, data: any): Observable<ApiResponse<Booking>> {
+    return this.http.put<ApiResponse<Booking>>(`${this.apiUrl}/${id}`, data);
+  }
+
+  deleteBooking(id: number | string): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
   }
 }

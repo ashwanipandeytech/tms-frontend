@@ -1,23 +1,25 @@
 <div class="container-fluid p-0">
-  
+
   <!-- Alert Banner (Mockup based on screenshot) -->
-  <div class="alert alert-success d-flex align-items-center mb-4 border-0 shadow-sm rounded-3 bg-success-subtle text-success-emphasis" role="alert" *ngIf="false">
-    <i class="bi bi-check-circle-fill me-2 fs-5"></i>
-    <div>
-      Coupons added.
+  @if (false) {
+    <div class="alert alert-success d-flex align-items-center mb-4 border-0 shadow-sm rounded-3 bg-success-subtle text-success-emphasis" role="alert">
+      <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+      <div>
+        Coupons added.
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Page Header -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
-        Coupons 
+        Coupons
         <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{coupons.length}} Total</span>
       </h3>
       <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage promotional codes, discounts, and offers.</p>
     </div>
-    
+
     <div class="d-flex align-items-center gap-3">
       <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
         <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
@@ -25,7 +27,7 @@
         </span>
         <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search coupons..." style="box-shadow: none;">
       </div>
-      
+
       <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#couponFormOffcanvas" (click)="showAdd()">
         <i class="bi bi-plus-lg"></i> Add Coupon
       </button>
@@ -47,51 +49,53 @@
           </tr>
         </thead>
         <tbody class="border-top-0">
-          <tr *ngFor="let item of coupons" class="border-bottom border-light align-middle group">
-            <td class="ps-4 py-3">
-              <div class="d-flex align-items-center gap-2">
-                <div class="rounded-2 bg-light border d-flex align-items-center justify-content-center text-slate-700 font-monospace fw-bold" style="padding: 4px 10px; font-size: 0.9rem; letter-spacing: 1px;">
-                  {{item.code}}
+          @for (item of coupons; track item) {
+            <tr class="border-bottom border-light align-middle group">
+              <td class="ps-4 py-3">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="rounded-2 bg-light border d-flex align-items-center justify-content-center text-slate-700 font-monospace fw-bold" style="padding: 4px 10px; font-size: 0.9rem; letter-spacing: 1px;">
+                    {{item.code}}
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="py-3">
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi text-primary" [ngClass]="{'bi-percent': item.type === 'Percentage', 'bi-currency-rupee': item.type !== 'Percentage'}"></i>
-                <span class="text-slate-700 fw-medium">{{item.type}}</span>
-              </div>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-800 fw-bold fs-6">{{item.value}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-x me-2 text-slate-400"></i>{{item.expiry}}</span>
-            </td>
-            <td class="py-3">
-              <span class="badge rounded-pill px-3 py-2 fw-bold" 
+              </td>
+              <td class="py-3">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi text-primary" [ngClass]="{'bi-percent': item.type === 'Percentage', 'bi-currency-rupee': item.type !== 'Percentage'}"></i>
+                  <span class="text-slate-700 fw-medium">{{item.type}}</span>
+                </div>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-800 fw-bold fs-6">{{item.value}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-x me-2 text-slate-400"></i>{{item.expiry}}</span>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
                       'bg-success-subtle text-success': item.status === 'Active',
                       'bg-slate-200 text-slate-600': item.status === 'Inactive' || item.status === 'Expired'
                     }" style="letter-spacing: 0.3px;">
-                <span class="d-inline-block rounded-circle me-1" 
+                  <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
                         'bg-success': item.status === 'Active',
                         'bg-slate-400': item.status === 'Inactive' || item.status === 'Expired'
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-                {{item.status}}
-              </span>
-            </td>
-            <td class="py-3 text-end pe-4">
-              <div class="d-flex justify-content-end gap-1">
-                <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#couponFormOffcanvas" (click)="showEdit(item)" title="Edit">
-                  <i class="bi bi-pencil-square fs-6"></i>
-                </button>
-                <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteCouponModal" (click)="confirmDelete(item)">
-                  <i class="bi bi-trash3 fs-6"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
+                  {{item.status}}
+                </span>
+              </td>
+              <td class="py-3 text-end pe-4">
+                <div class="d-flex justify-content-end gap-1">
+                  <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#couponFormOffcanvas" (click)="showEdit(item)" title="Edit">
+                    <i class="bi bi-pencil-square fs-6"></i>
+                  </button>
+                  <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteCouponModal" (click)="confirmDelete(item)">
+                    <i class="bi bi-trash3 fs-6"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -110,7 +114,7 @@
 
 <!-- Add/Edit Coupon Offcanvas (Drawer) -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="couponFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
-  
+
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-3">
       <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -126,7 +130,7 @@
 
   <div class="offcanvas-body p-4 p-md-5 bg-white" style="overflow-y: auto;">
     <form class="row g-4">
-      
+
       <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Coupon Configuration</h6></div>
 
       <!-- Code -->
@@ -191,7 +195,7 @@
 
     </form>
   </div>
-  
+
   <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
     <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
     <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" data-bs-dismiss="offcanvas">
@@ -212,7 +216,9 @@
           <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
         </div>
         <h4 class="fw-bold text-slate-800 mb-2">Delete Coupon?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete the coupon code <strong *ngIf="itemToDelete" class="text-slate-700 font-monospace">{{itemToDelete.code}}</strong>? This action cannot be undone.</p>
+        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete the coupon code @if (itemToDelete) {
+          <strong class="text-slate-700 font-monospace">{{itemToDelete.code}}</strong>
+        }? This action cannot be undone.</p>
       </div>
       <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
         <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>

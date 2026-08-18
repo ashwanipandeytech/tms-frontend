@@ -5,7 +5,7 @@
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
         Leads 
-        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{leads.length}} Total</span>
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{leadsResource.value()?.data?.length || 0}} Total</span>
       </h3>
       <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage, track, and assign your incoming leads efficiently.</p>
     </div>
@@ -25,62 +25,50 @@
   </div>
 
   <!-- Table Card -->
-  <app-data-table [dataList]="leads" [pagination]="true">
+  <app-data-table [dataList]="leadsResource.value()?.data || []" [pagination]="true">
     
-    <ng-template appColumn="name" header="Name & Contact">
-      <ng-template let-row>
-        <div class="d-flex flex-column">
-          <span class="text-slate-800 fw-bold">{{row.name}}</span>
-          <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-telephone-fill me-1 text-slate-400"></i>{{row.phone}}</span>
-        </div>
-      </ng-template>
+    <ng-template appColumn="name" header="Name & Contact" let-row>
+      <div class="d-flex flex-column">
+        <span class="text-slate-800 fw-bold">{{row.name}}</span>
+        <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-telephone-fill me-1 text-slate-400"></i>{{row.phone}}</span>
+      </div>
     </ng-template>
     
-    <ng-template appColumn="source" header="Source">
-      <ng-template let-row>
-        <span class="badge bg-light text-slate-600 border px-2 py-1 fw-medium"><i class="bi bi-globe me-1"></i> {{row.source}}</span>
-      </ng-template>
+    <ng-template appColumn="source" header="Source" let-row>
+      <span class="badge bg-light text-dark border border-secondary-subtle px-2 py-1 fw-medium"><i class="bi bi-globe me-1"></i> {{row.source}}</span>
     </ng-template>
 
-    <ng-template appColumn="destination" header="Trip Details">
-      <ng-template let-row>
-        <div class="d-flex flex-column">
-          <span class="text-slate-700 fw-medium">{{row.destination}}</span>
-          <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{row.travel_date}}</span>
-        </div>
-      </ng-template>
+    <ng-template appColumn="destination" header="Trip Details" let-row>
+      <div class="d-flex flex-column">
+        <span class="text-slate-700 fw-medium">{{row.destination}}</span>
+        <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{row.travel_date}}</span>
+      </div>
     </ng-template>
 
-    <ng-template appColumn="assigned_to" header="Assigned To">
-      <ng-template let-row>
-        <div *ngIf="row.assigned_to" class="d-flex align-items-center gap-2">
-          <img [src]="'https://ui-avatars.com/api/?name=' + row.assigned_to + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
-          <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{row.assigned_to}}</span>
-        </div>
-        <span *ngIf="!row.assigned_to" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
-      </ng-template>
+    <ng-template appColumn="assigned_to" header="Assigned To" let-row>
+      <div *ngIf="row.assigned_to" class="d-flex align-items-center gap-2">
+        <img [src]="'https://ui-avatars.com/api/?name=' + row.assigned_to?.name + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
+        <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{row.assigned_to?.name}}</span>
+      </div>
+      <span *ngIf="!row.assigned_to" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
     </ng-template>
 
-    <ng-template appColumn="status" header="Status">
-      <ng-template let-row>
-        <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2 fw-bold" style="letter-spacing: 0.3px;">
-          <span class="d-inline-block rounded-circle bg-info me-1" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-          {{row.status}}
-        </span>
-      </ng-template>
+    <ng-template appColumn="status" header="Status" let-row>
+      <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2 fw-bold" style="letter-spacing: 0.3px;">
+        <span class="d-inline-block rounded-circle bg-info me-1" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
+        {{row.status}}
+      </span>
     </ng-template>
 
-    <ng-template appColumn="id" header="Actions" [sortable]="false">
-      <ng-template let-row>
-        <div class="d-flex justify-content-start gap-1">
-          <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showEdit(row)" title="Edit">
-            <i class="bi bi-pencil-square fs-6"></i>
-          </button>
-          <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" (click)="confirmDelete(row)">
-            <i class="bi bi-trash3 fs-6"></i>
-          </button>
-        </div>
-      </ng-template>
+    <ng-template appColumn="id" header="Actions" [sortable]="false" let-row>
+      <div class="d-flex justify-content-start gap-1">
+        <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showEdit(row)" title="Edit">
+          <i class="bi bi-pencil-square fs-6"></i>
+        </button>
+        <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" (click)="confirmDelete(row)">
+          <i class="bi bi-trash3 fs-6"></i>
+        </button>
+      </div>
     </ng-template>
 
   </app-data-table>
@@ -103,7 +91,7 @@
   </div>
 
   <div class="offcanvas-body p-4 bg-white" style="overflow-y: auto;">
-    <form class="row g-4">
+    <form class="row g-4" [formGroup]="leadForm">
       
       <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Client Information</h6></div>
 
@@ -112,7 +100,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Full Name <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
-          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. Rajesh">
+          <input type="text" formControlName="name" class="form-control bg-light border-0 py-2" placeholder="e.g. Rajesh">
         </div>
       </div>
       <!-- Phone -->
@@ -120,7 +108,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Phone Number <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-telephone"></i></span>
-          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. 7503301775">
+          <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2" placeholder="e.g. 7503301775">
         </div>
       </div>
       <!-- Email -->
@@ -128,7 +116,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Email Address</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-envelope"></i></span>
-          <input type="email" class="form-control bg-light border-0 py-2" placeholder="e.g. rajesh@example.com">
+          <input type="email" formControlName="email" class="form-control bg-light border-0 py-2" placeholder="e.g. rajesh@example.com">
         </div>
       </div>
 
@@ -139,7 +127,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Destination</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
-          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. Uttarakhand">
+          <input type="text" formControlName="destination" class="form-control bg-light border-0 py-2" placeholder="e.g. Uttarakhand">
         </div>
       </div>
       <!-- Travel Date -->
@@ -147,15 +135,15 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Travel Date</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar3"></i></span>
-          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600">
+          <input type="date" formControlName="travel_date" class="form-control bg-light border-0 py-2 text-slate-600">
         </div>
       </div>
       <!-- Adults & Children -->
       <div class="col-md-6">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Pax (Adults / Children)</label>
         <div class="d-flex gap-2">
-          <input type="number" class="form-control bg-light border-0 py-2" placeholder="Adults" title="Adults">
-          <input type="number" class="form-control bg-light border-0 py-2" placeholder="Children" title="Children">
+          <input type="number" formControlName="pax_adults" class="form-control bg-light border-0 py-2" placeholder="Adults" title="Adults">
+          <input type="number" formControlName="pax_children" class="form-control bg-light border-0 py-2" placeholder="Children" title="Children">
         </div>
       </div>
       <!-- Budget -->
@@ -163,7 +151,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Approx. Budget</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted">₹</span>
-          <input type="number" class="form-control bg-light border-0 py-2" placeholder="20000.00">
+          <input type="number" formControlName="budget" class="form-control bg-light border-0 py-2" placeholder="20000.00">
         </div>
       </div>
 
@@ -172,42 +160,40 @@
       <!-- Source -->
       <div class="col-md-4">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Lead Source</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-600">
+        <select formControlName="source" class="form-select bg-light border-0 py-2 text-slate-600">
           <option>Website</option>
           <option>Referral</option>
           <option>Walk-in</option>
         </select>
       </div>
-      <!-- Assigned To -->
       <div class="col-md-4">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Assigned To</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-600">
-          <option>Select...</option>
-          <option>Agent A</option>
+        <select formControlName="assigned_to" class="form-select bg-light border-0 py-2 text-slate-600">
+          <option [ngValue]="null">Select...</option>
+          <option [ngValue]="1">Super Admin</option>
+          <option [ngValue]="2">Agent A</option>
         </select>
       </div>
-      <!-- Status -->
       <div class="col-md-4">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-600">
-          <option>New</option>
-          <option>Contacted</option>
-          <option>Confirmed</option>
-          <option>Lost</option>
+        <select formControlName="status" class="form-select bg-light border-0 py-2 text-slate-600">
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="lost">Lost</option>
         </select>
       </div>
 
-      <!-- Notes -->
       <div class="col-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Special Notes / Requirements</label>
-        <textarea class="form-control bg-light border-0 py-3" rows="3" placeholder="Enter any extra details or requirements here..."></textarea>
+        <textarea formControlName="notes" class="form-control bg-light border-0 py-3" rows="3" placeholder="Enter any extra details or requirements here..."></textarea>
       </div>
     </form>
   </div>
   
   <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
     <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
-    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" data-bs-dismiss="offcanvas">
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveLead()" [attr.data-bs-dismiss]="leadForm.valid ? 'offcanvas' : null">
       <i class="bi bi-check2"></i> Save Lead
     </button>
   </div>

@@ -1,4 +1,4 @@
-import { Component, Input, signal, computed, TemplateRef, ContentChildren, QueryList, Directive } from '@angular/core';
+import { Component, Input, signal, computed, TemplateRef, ContentChildren, QueryList, Directive, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Directive({
@@ -16,70 +16,80 @@ export class DataTableColumnDirective {
   selector: 'app-data-table',
   standalone: true,
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
       <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
           <thead class="bg-slate-50">
             <tr>
-              <th *ngFor="let col of columns" 
-                  class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" 
+              @for (col of columns; track col) {
+                <th
+                  class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0"
                   style="font-size: 0.75rem; letter-spacing: 0.5px; cursor: pointer;"
                   (click)="col.sortable ? sortBy(col.field) : null">
-                
-                <div class="d-flex align-items-center gap-1">
-                  {{ col.header }}
-                  <i *ngIf="col.sortable" class="bi" 
+                  <div class="d-flex align-items-center gap-1">
+                    {{ col.header }}
+                    @if (col.sortable) {
+                      <i class="bi"
                      [ngClass]="{
                        'bi-arrow-down-short': sortField() === col.field && sortDir() === 'desc',
                        'bi-arrow-up-short': sortField() === col.field && sortDir() === 'asc',
                        'bi-arrow-down-up text-slate-300': sortField() !== col.field
                      }">
-                  </i>
-                </div>
-              </th>
+                      </i>
+                    }
+                  </div>
+                </th>
+              }
             </tr>
           </thead>
           <tbody class="border-top-0">
-            <tr *ngFor="let row of paginatedData()" class="border-bottom border-light align-middle group">
-              <td *ngFor="let col of columns" class="ps-4 py-3">
-                <ng-container *ngTemplateOutlet="col.template; context: { $implicit: row, row: row }"></ng-container>
-              </td>
-            </tr>
-            <tr *ngIf="paginatedData().length === 0">
-              <td [attr.colspan]="columns.length" class="text-center py-5 text-slate-500">
-                No data available.
-              </td>
-            </tr>
+            @for (row of paginatedData(); track row) {
+              <tr class="border-bottom border-light align-middle group">
+                @for (col of columns; track col) {
+                  <td class="ps-4 py-3">
+                    <ng-container *ngTemplateOutlet="col.template; context: { $implicit: row, row: row }"></ng-container>
+                  </td>
+                }
+              </tr>
+            }
+            @if (paginatedData().length === 0) {
+              <tr>
+                <td [attr.colspan]="columns.length" class="text-center py-5 text-slate-500">
+                  No data available.
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
-      
+    
       <!-- Pagination -->
-      <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center" *ngIf="enablePagination()">
-        <span class="text-slate-500" style="font-size: 0.85rem;">
-          Showing {{ math.min((currentPage() * pageSize()) + 1, data().length) }} to 
-          {{ math.min((currentPage() + 1) * pageSize(), data().length) }} 
-          of {{ data().length }} entries
-        </span>
-        <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="currentPage() === 0">
-              <a class="page-link border-0 text-slate-600" href="javascript:void(0)" (click)="prevPage()">Previous</a>
-            </li>
-            
-            <li class="page-item active">
-              <span class="page-link border-0 rounded-2 bg-primary text-white mx-1">{{ currentPage() + 1 }}</span>
-            </li>
-            
-            <li class="page-item" [class.disabled]="currentPage() >= totalPages() - 1">
-              <a class="page-link border-0 text-slate-600" href="javascript:void(0)" (click)="nextPage()">Next</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
+      @if (enablePagination()) {
+        <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+          <span class="text-slate-500" style="font-size: 0.85rem;">
+            Showing {{ math.min((currentPage() * pageSize()) + 1, data().length) }} to
+            {{ math.min((currentPage() + 1) * pageSize(), data().length) }}
+            of {{ data().length }} entries
+          </span>
+          <nav aria-label="Page navigation">
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="currentPage() === 0">
+                <a class="page-link border-0 text-slate-600" href="javascript:void(0)" (click)="prevPage()">Previous</a>
+              </li>
+              <li class="page-item active">
+                <span class="page-link border-0 rounded-2 bg-primary text-white mx-1">{{ currentPage() + 1 }}</span>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage() >= totalPages() - 1">
+                <a class="page-link border-0 text-slate-600" href="javascript:void(0)" (click)="nextPage()">Next</a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      }
     </div>
-  `
+    `
 })
 export class DataTableComponent {
   @Input({ required: true }) set dataList(value: any[]) {

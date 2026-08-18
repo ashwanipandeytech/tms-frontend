@@ -1,22 +1,27 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, signal, resource, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DataTableComponent, DataTableColumnDirective } from '../shared/components/data-table/data-table.component';
+import { firstValueFrom } from 'rxjs';
 import { LeadService } from '../core/services/lead.service';
 import { Lead } from '../core/models/lead.model';
 
 @Component({
   selector: 'app-leads',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, DataTableColumnDirective, ReactiveFormsModule],
-  templateUrl: './leads.html'
+  imports: [CommonModule, ReactiveFormsModule, DataTableComponent, DataTableColumnDirective],
+  templateUrl: './leads.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LeadsComponent implements OnInit {
+export class LeadsComponent {
   view = signal<'list' | 'add' | 'edit'>('list');
-  leads: Lead[] = [];
   leadForm: FormGroup;
   leadToDelete: Lead | null = null;
-  isLoading = false;
+  itemToEdit: Lead | null = null;
+
+  leadsResource = resource({
+    loader: () => firstValueFrom(this.leadService.getLeads())
+  });
 
   constructor(
     private leadService: LeadService,
@@ -24,80 +29,81 @@ export class LeadsComponent implements OnInit {
   ) {
     this.leadForm = this.fb.group({
       name: ['', Validators.required],
+      email: ['', [Validators.email]],
       phone: ['', Validators.required],
-      email: [''],
+      source: ['Website'],
       destination: [''],
       travel_date: [''],
       pax_adults: [0],
       pax_children: [0],
       budget: [0],
-      source_id: [1],
-      status: ['new'],
+      status: ['New'],
       assigned_to: [null],
       notes: ['']
     });
   }
 
-  ngOnInit(): void {
-    this.loadLeads();
-  }
-
-  loadLeads(): void {
-    this.isLoading = true;
-    this.leadService.getLeads().subscribe({
-      next: (res) => {
-        if (res.success) {
-          this.leads = res.data || [];
-        }
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading leads', err);
-        this.isLoading = false;
-      }
-    });
-  }
-
   showList() { this.view.set('list'); }
+  
   showAdd() { 
     this.view.set('add'); 
-    this.leadForm.reset({ status: 'new', source_id: 1, pax_adults: 0, pax_children: 0, budget: 0 });
+    this.leadForm.reset({ source: 'Website', status: 'New', budget: 0 });
   }
+  
   showEdit(lead: Lead) { 
+    this.itemToEdit = lead;
     this.view.set('edit'); 
-    this.leadForm.patchValue(lead);
+    
+    // For assigned_to, we just want the ID if it's an object
+    const formData = { ...lead };
+    if (formData.assigned_to && typeof formData.assigned_to === 'object') {
+      formData.assigned_to = (formData.assigned_to as any).id;
+    }
+    this.leadForm.patchValue(formData);
   }
 
   confirmDelete(lead: Lead) {
     this.leadToDelete = lead;
   }
 
-  deleteLead() {
+  async deleteLead() {
     if (this.leadToDelete) {
-      this.leadService.deleteLead(this.leadToDelete.id).subscribe({
-        next: (res) => {
-          this.loadLeads();
-          this.leadToDelete = null;
-        },
-        error: (err) => {
-          console.error('Failed to delete lead', err);
-        }
-      });
+      try {
+        await firstValueFrom(this.leadService.deleteLead(this.leadToDelete.id));
+        this.leadsResource.reload();
+        this.leadToDelete = null;
+      } catch (err) {
+        console.error('Failed to delete lead', err);
+      }
     }
   }
 
-  saveLead() {
-    if (this.leadForm.invalid) return;
+  async saveLead() {
+    if (this.leadForm.invalid) {
+      this.leadForm.markAllAsTouched();
+      return;
+    }
 
     if (this.view() === 'add') {
-      this.leadService.createLead(this.leadForm.value).subscribe({
-        next: (res) => {
-          this.loadLeads();
+      try {
+        const res = await firstValueFrom(this.leadService.createLead(this.leadForm.value));
+        if (res.success) {
+          this.leadsResource.reload();
+          this.showList();
         }
-      });
-    } else if (this.view() === 'edit') {
-      // Assuming lead id is available when editing
-      // You'd normally store the ID of the lead being edited
+      } catch (err) {
+        console.error('Failed to create lead', err);
+      }
+    } else if (this.view() === 'edit' && this.itemToEdit) {
+      try {
+        const res = await firstValueFrom(this.leadService.updateLead(this.itemToEdit.id, this.leadForm.value));
+        if (res.success) {
+          this.leadsResource.reload();
+          this.showList();
+        }
+      } catch (err) {
+        console.error('Failed to update lead', err);
+      }
     }
   }
 }

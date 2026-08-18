@@ -1,42 +1,109 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, resource, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { FollowUpService } from '../core/services/follow-up.service';
+import { LeadService } from '../core/services/lead.service';
+import { FollowUp } from '../core/models/follow-up.model';
+import { Lead } from '../core/models/lead.model';
 
 @Component({
   selector: 'app-follow-ups',
   standalone: true,
-  imports: [CommonModule],
-  templateUrl: './follow-ups.html'
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './follow-ups.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FollowUpsComponent {
   view = signal<'list' | 'add' | 'edit'>('list');
-  
-  // mock data
-  followUps = [
-    { 
-      id: 1, 
-      lead: 'Rajesh', 
-      date: '2026-06-17', 
-      time: '13:22',
-      type: 'Call', 
-      remarks: 'intresed',
-      status: 'Done'
-    }
-  ];
+  followUpForm: FormGroup;
+  itemToDelete: FollowUp | null = null;
+  itemToEdit: FollowUp | null = null;
+
+  leadsResource = resource({
+    loader: () => firstValueFrom(this.leadService.getLeads())
+  });
+
+  followUpsResource = resource({
+    loader: () => firstValueFrom(this.followUpService.getFollowUps())
+  });
+
+  constructor(
+    private followUpService: FollowUpService,
+    private leadService: LeadService,
+    private fb: FormBuilder
+  ) {
+    this.followUpForm = this.fb.group({
+      lead_id: [null, Validators.required],
+      date: ['', Validators.required],
+      time: ['', Validators.required],
+      type: ['Call', Validators.required],
+      remarks: [''],
+      status: ['Pending', Validators.required]
+    });
+  }
 
   showList() { this.view.set('list'); }
-  showAdd() { this.view.set('add'); }
-  showEdit(followUp: any) { this.view.set('edit'); }
+  
+  showAdd() { 
+    this.view.set('add'); 
+    this.followUpForm.reset({ type: 'Call', status: 'Pending' });
+  }
+  
+  showEdit(followUp: FollowUp) { 
+    this.itemToEdit = followUp;
+    this.view.set('edit'); 
+    
+    const formData = { ...followUp };
+    if (formData.lead && typeof formData.lead === 'object') {
+      formData.lead_id = (formData.lead as any).id;
+    }
+    
+    this.followUpForm.patchValue(formData);
+  }
 
-  itemToDelete: any = null;
-
-  confirmDelete(item: any) {
+  confirmDelete(item: FollowUp) {
     this.itemToDelete = item;
   }
 
-  deleteItem() {
+  async deleteItem() {
     if (this.itemToDelete) {
-      this.followUps = this.followUps.filter(f => f.id !== this.itemToDelete.id);
-      this.itemToDelete = null;
+      try {
+        await firstValueFrom(this.followUpService.deleteFollowUp(this.itemToDelete.id));
+        this.followUpsResource.reload();
+        this.itemToDelete = null;
+      } catch (err) {
+        console.error('Failed to delete follow-up', err);
+      }
+    }
+  }
+
+  async saveFollowUp() {
+    if (this.followUpForm.invalid) {
+      this.followUpForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.view() === 'add') {
+      try {
+        const res = await firstValueFrom(this.followUpService.createFollowUp(this.followUpForm.value));
+        if (res.success) {
+          this.followUpsResource.reload();
+          this.showList();
+        }
+      } catch (err) {
+        console.error('Failed to create follow-up', err);
+      }
+    } else if (this.view() === 'edit' && this.itemToEdit) {
+      try {
+        const res = await firstValueFrom(this.followUpService.updateFollowUp(this.itemToEdit.id, this.followUpForm.value));
+        if (res.success) {
+          this.followUpsResource.reload();
+          this.showList();
+        }
+      } catch (err) {
+        console.error('Failed to update follow-up', err);
+      }
     }
   }
 }

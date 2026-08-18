@@ -106,3 +106,29 @@
     }
   }
 }
+
+/* Top Loading Bar */
+.top-loader-bar {
+  pointer-events: none;
+  height: 4px;
+  background-color: transparent;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  
+  .progress-bar-indeterminate {
+    width: 100%;
+    height: 100%;
+    background-color: var(--theme-sidebar-active, #3b82f6);
+    animation: indeterminate 1.5s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+    transform-origin: left;
+  }
+}
+
+@keyframes indeterminate {
+  0% { transform: scaleX(0) translateX(-100%); }
+  50% { transform: scaleX(0.5) translateX(0%); }
+  100% { transform: scaleX(0) translateX(200%); }
+}

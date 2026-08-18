@@ -16,3 +16,13 @@ export interface Booking {
   lead?: any;
   package?: any;
 }
+
+export interface CreateBookingDto {
+  lead_id: number;
+  customer_id: number;
+  package_id: number;
+  travel_date: string;
+  total_amount: number;
+  paid_amount: number;
+  status: string;
+}

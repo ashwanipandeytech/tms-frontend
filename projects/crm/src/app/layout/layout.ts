@@ -1,20 +1,25 @@
-import { Component, signal, Inject, PLATFORM_ID, HostListener } from '@angular/core';
+import { Component, signal, Inject, PLATFORM_ID, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { CommonModule, isPlatformBrowser, DOCUMENT } from '@angular/common';
+import { isPlatformBrowser, DOCUMENT } from '@angular/common';
+import { AuthService } from '../core/services/auth.service';
+import { LoaderService } from '../core/services/loader.service';
+import { User } from '../core/models/user.model';
 
 @Component({
   selector: 'app-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './layout.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './layout.scss',
 })
-export class Layout {
+export class Layout implements OnInit {
   isSidebarCollapsed = signal(false);
   currentTheme = signal('blue');
   expandedSections = signal<Set<string>>(new Set(['sales', 'inventory', 'cabs', 'finance', 'automation', 'admin', 'insights']));
   
   showShortcutToast = signal(false);
   hasUsedShortcut = signal(false);
+  currentUser = signal<User | null>(null);
 
   toggleSection(section: string) {
     if (this.isSidebarCollapsed()) {
@@ -45,12 +50,27 @@ export class Layout {
   constructor(
     @Inject(DOCUMENT) private document: Document,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private router: Router
+    private router: Router,
+    private authService: AuthService,
+    public loaderService: LoaderService
   ) {
     if (isPlatformBrowser(this.platformId)) {
       const savedTheme = localStorage.getItem('app-theme') || 'blue';
       this.setTheme(savedTheme);
       this.hasUsedShortcut.set(localStorage.getItem('has-used-shortcut') === 'true');
+    }
+  }
+
+  ngOnInit(): void {
+    if (this.authService.getToken()) {
+      this.authService.getMe().subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.currentUser.set(res.data);
+          }
+        },
+        error: (err) => console.error('Failed to load user', err)
+      });
     }
   }
 
@@ -103,4 +123,16 @@ export class Layout {
     }
   }
 
+  logout() {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: () => {
+        // Fallback if API fails
+        localStorage.removeItem('authToken');
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 }

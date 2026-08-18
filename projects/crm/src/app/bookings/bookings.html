@@ -1,15 +1,15 @@
 <div class="container-fluid p-0">
-  
+
   <!-- Page Header -->
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
-        Bookings 
-        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{bookings.length}} Total</span>
+        Bookings
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{bookingsResource.value()?.data?.length || 0}} Total</span>
       </h3>
       <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage confirmed trips, dates, and payment statuses.</p>
     </div>
-    
+
     <div class="d-flex align-items-center gap-3">
       <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
         <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
@@ -17,7 +17,7 @@
         </span>
         <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search bookings..." style="box-shadow: none;">
       </div>
-      
+
       <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#bookingFormOffcanvas" (click)="showAdd()">
         <i class="bi bi-plus-lg"></i> Add Booking
       </button>
@@ -42,55 +42,60 @@
           </tr>
         </thead>
         <tbody class="border-top-0">
-          <tr *ngFor="let item of bookings" class="border-bottom border-light align-middle group">
-            <td class="ps-4 py-3">
-              <span class="text-slate-700 fw-bold font-monospace bg-light border px-2 py-1 rounded-2">{{item.booking_no}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-800 fw-bold">{{item.customer}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-700 fw-medium"><i class="bi bi-box me-2 text-primary"></i>{{item.package}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-check me-2 text-slate-400"></i>{{item.travel_date}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-slate-800 fw-bold">₹ {{item.total_amount}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-success fw-medium">₹ {{item.paid_amount}}</span>
-            </td>
-            <td class="py-3">
-              <span class="text-danger fw-medium">₹ {{item.due_amount}}</span>
-            </td>
-            <td class="py-3">
-              <span class="badge rounded-pill px-3 py-2 fw-bold" 
+          @for (item of bookingsResource.value()?.data || []; track item) {
+            <tr class="border-bottom border-light align-middle group">
+              <td class="ps-4 py-3">
+                <span class="text-slate-700 fw-bold font-monospace bg-light border px-2 py-1 rounded-2">{{item.booking_no}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-800 fw-bold">{{item.customer}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-700 fw-medium"><i class="bi bi-box me-2 text-primary"></i>{{item.package}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-check me-2 text-slate-400"></i>{{item.travel_date}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-800 fw-bold">₹ {{item.total_amount}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-success fw-medium">₹ {{item.paid_amount}}</span>
+              </td>
+              <td class="py-3">
+                <span class="text-danger fw-medium">₹ {{item.due_amount}}</span>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
                       'bg-success-subtle text-success': item.status === 'Confirmed' || item.status === 'Completed',
                       'bg-warning-subtle text-warning': item.status === 'Pending',
                       'bg-danger-subtle text-danger': item.status === 'Cancelled'
                     }" style="letter-spacing: 0.3px;">
-                <span class="d-inline-block rounded-circle me-1" 
+                  <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
                         'bg-success': item.status === 'Confirmed' || item.status === 'Completed',
                         'bg-warning': item.status === 'Pending',
                         'bg-danger': item.status === 'Cancelled'
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-                {{item.status}}
-              </span>
-            </td>
-            <td class="py-3 text-end pe-4">
-              <div class="d-flex justify-content-end gap-1">
-                <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#bookingFormOffcanvas" (click)="showEdit(item)" title="Edit">
-                  <i class="bi bi-pencil-square fs-6"></i>
-                </button>
-                <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteBookingModal" (click)="confirmDelete(item)">
-                  <i class="bi bi-trash3 fs-6"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
+                  {{item.status}}
+                </span>
+              </td>
+              <td class="py-3 text-end pe-4">
+                <div class="d-flex justify-content-end gap-1">
+                  <button class="btn btn-sm btn-light text-success hover-bg-success hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="modal" data-bs-target="#paymentModal" (click)="openPaymentModal(item)" title="Record Payment">
+                    <i class="bi bi-currency-rupee fs-6"></i>
+                  </button>
+                  <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#bookingFormOffcanvas" (click)="showEdit(item)" title="Edit">
+                    <i class="bi bi-pencil-square fs-6"></i>
+                  </button>
+                  <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteBookingModal" (click)="confirmDelete(item)">
+                    <i class="bi bi-trash3 fs-6"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -109,7 +114,7 @@
 
 <!-- Add/Edit Booking Offcanvas (Drawer) -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="bookingFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
-  
+
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-3">
       <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -124,101 +129,82 @@
   </div>
 
   <div class="offcanvas-body p-4 p-md-5 bg-white" style="overflow-y: auto;">
-    <form class="row g-4">
-      
+    <form class="row g-4" [formGroup]="bookingForm">
+
       <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Booking Info</h6></div>
 
-      <!-- Booking No -->
-      <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Booking No <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-hash"></i></span>
-          <input type="text" class="form-control bg-light border-0 py-2 font-monospace fw-medium text-slate-800" placeholder="e.g. B001">
-        </div>
-      </div>
       <!-- Lead -->
-      <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Lead</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-700">
-          <option>Select...</option>
-          <option>Rajesh</option>
-        </select>
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Lead ID</label>
+        <input type="number" class="form-control bg-light border-0 py-2 text-slate-700" formControlName="lead_id" placeholder="Lead ID">
       </div>
       <!-- Customer -->
-      <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Customer</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-700">
-          <option>Select...</option>
-          <option>Rajesh</option>
-        </select>
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Customer ID</label>
+        <input type="number" class="form-control bg-light border-0 py-2 text-slate-700" formControlName="customer_id" placeholder="Customer ID">
       </div>
 
       <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Trip Details</h6></div>
 
       <!-- Package -->
       <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Package</label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Package ID</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-box"></i></span>
-          <select class="form-select bg-light border-0 py-2 text-slate-700">
-            <option>Select...</option>
-            <option>3 Night 2 Days</option>
-          </select>
+          <input type="number" class="form-control bg-light border-0 py-2 text-slate-700" formControlName="package_id" placeholder="Package ID">
         </div>
       </div>
       <!-- Travel Date -->
       <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Travel Date</label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Travel Date <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar-event"></i></span>
-          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600">
+          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="travel_date" [ngClass]="{'border border-danger': bookingForm.get('travel_date')?.invalid && bookingForm.get('travel_date')?.touched}">
         </div>
+        @if (bookingForm.get('travel_date')?.invalid && bookingForm.get('travel_date')?.touched) {
+          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Travel Date is required</div>
+        }
       </div>
 
       <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Payments & Status</h6></div>
 
       <!-- Total -->
-      <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-bold mb-1 small">Total Amount</label>
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-bold mb-1 small">Total Amount <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted fw-bold">₹</span>
-          <input type="number" class="form-control bg-light border-0 py-2 fw-bold text-slate-800" placeholder="0.00">
+          <input type="number" class="form-control bg-light border-0 py-2 fw-bold text-slate-800" formControlName="total_amount" placeholder="0.00" [ngClass]="{'border border-danger': bookingForm.get('total_amount')?.invalid && bookingForm.get('total_amount')?.touched}">
         </div>
+        @if (bookingForm.get('total_amount')?.invalid && bookingForm.get('total_amount')?.touched) {
+          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Valid Total Amount is required</div>
+        }
       </div>
       <!-- Paid -->
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Amount Paid</label>
         <div class="input-group">
           <span class="input-group-text bg-success-subtle border-0 text-success fw-bold">₹</span>
-          <input type="number" class="form-control bg-success-subtle border-0 py-2 text-success-emphasis fw-bold" placeholder="0.00">
-        </div>
-      </div>
-      <!-- Due -->
-      <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Amount Due</label>
-        <div class="input-group">
-          <span class="input-group-text bg-danger-subtle border-0 text-danger fw-bold">₹</span>
-          <input type="number" class="form-control bg-danger-subtle border-0 py-2 text-danger-emphasis fw-bold" placeholder="0.00">
+          <input type="number" class="form-control bg-success-subtle border-0 py-2 text-success-emphasis fw-bold" formControlName="paid_amount" placeholder="0.00">
         </div>
       </div>
 
       <!-- Status -->
       <div class="col-md-12 mt-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Booking Status</label>
-        <select class="form-select bg-light border-0 py-2 text-slate-700 fw-bold" style="max-width: 300px;">
-          <option>Pending</option>
-          <option>Confirmed</option>
-          <option>Completed</option>
-          <option>Cancelled</option>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Booking Status <span class="text-danger">*</span></label>
+        <select class="form-select bg-light border-0 py-2 text-slate-700 fw-bold" formControlName="status" style="max-width: 300px;">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
 
     </form>
   </div>
-  
+
   <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
     <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
-    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" data-bs-dismiss="offcanvas">
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveBooking()" [attr.data-bs-dismiss]="bookingForm.valid ? 'offcanvas' : null">
       <i class="bi bi-check2"></i> Save Booking
     </button>
   </div>
@@ -236,12 +222,70 @@
           <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
         </div>
         <h4 class="fw-bold text-slate-800 mb-2">Delete Booking?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete booking <strong *ngIf="itemToDelete" class="text-slate-700 font-monospace">{{itemToDelete.booking_no}}</strong>? This action cannot be undone and will remove all associated payment records.</p>
+        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete booking @if (itemToDelete) {
+          <strong class="text-slate-700 font-monospace">{{itemToDelete.booking_no}}</strong>
+        }? This action cannot be undone and will remove all associated payment records.</p>
       </div>
       <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
         <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-danger fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" data-bs-dismiss="modal" (click)="deleteItem()">
           <i class="bi bi-trash3"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+        <h5 class="modal-title fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-cash-coin text-success"></i> Record Payment
+        </h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 py-4">
+        <form [formGroup]="paymentForm" class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label text-slate-700 fw-medium small">Amount (₹) <span class="text-danger">*</span></label>
+            <input type="number" class="form-control bg-light border-0 py-2 text-slate-800 fw-bold" formControlName="amount" [ngClass]="{'border border-danger': paymentForm.get('amount')?.invalid && paymentForm.get('amount')?.touched}">
+            @if (paymentForm.get('amount')?.invalid && paymentForm.get('amount')?.touched) {
+              <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Valid Amount is required</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-slate-700 fw-medium small">Payment Type <span class="text-danger">*</span></label>
+            <select class="form-select bg-light border-0 py-2" formControlName="payment_type">
+              <option value="advance">Advance</option>
+              <option value="part_payment">Part Payment</option>
+              <option value="full_payment">Full Payment</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-slate-700 fw-medium small">Payment Mode <span class="text-danger">*</span></label>
+            <select class="form-select bg-light border-0 py-2" formControlName="payment_mode">
+              <option value="cash">Cash</option>
+              <option value="upi">UPI</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="card">Card</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label text-slate-700 fw-medium small">Txn Reference</label>
+            <input type="text" class="form-control bg-light border-0 py-2" formControlName="txn_reference" placeholder="e.g. UTR or Ref No">
+          </div>
+          <div class="col-md-12">
+            <label class="form-label text-slate-700 fw-medium small">Payment Date & Time</label>
+            <input type="text" class="form-control bg-light border-0 py-2" formControlName="paid_at" placeholder="YYYY-MM-DD HH:MM:SS">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top p-3 bg-light d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-white border px-4 py-2 fw-medium" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success px-4 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="recordPayment()" [attr.data-bs-dismiss]="paymentForm.valid ? 'modal' : null">
+          <i class="bi bi-check2"></i> Save Payment
         </button>
       </div>
     </div>
