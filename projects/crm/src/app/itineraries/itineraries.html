@@ -31,8 +31,9 @@
         <thead class="bg-slate-50">
           <tr>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Title</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Quotation</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Package</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Duration</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Price</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
           </tr>
         </thead>
@@ -48,20 +49,13 @@
                 </div>
               </td>
               <td class="py-3">
-                @if (item.quotation_id) {
-                  <span class="text-slate-700 fw-medium font-monospace bg-light border px-2 py-1 rounded-2">{{item.quotation?.quotation_no || item.quotation_id}}</span>
-                }
-                @if (!item.quotation_id) {
-                  <span class="text-slate-400 fst-italic">—</span>
-                }
+                <span class="text-slate-700 fw-medium">{{item.days || 0}} Days / {{item.nights || 0}} Nights</span>
               </td>
               <td class="py-3">
-                @if (item.id) {
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-box text-primary"></i>
-                    <span class="text-slate-700 fw-medium">Package ID: {{item.id}}</span>
-                  </div>
-                }
+                <span class="text-slate-700 fw-medium font-monospace">₹{{item.price || 0}}</span>
+              </td>
+              <td class="py-3">
+                <span class="badge rounded-pill" [ngClass]="item.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'">{{item.status | titlecase}}</span>
               </td>
               <td class="py-3 text-end pe-4">
                 <div class="d-flex justify-content-end gap-1">
