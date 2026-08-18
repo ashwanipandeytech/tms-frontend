@@ -34,12 +34,15 @@ export class ItinerariesComponent {
     private fb: FormBuilder
   ) {
     this.itineraryForm = this.fb.group({
-      quotation_id: [null],
       name: ['', Validators.required],
-      duration_days: [1, [Validators.required, Validators.min(1)]],
-      duration_nights: [0, [Validators.required, Validators.min(0)]],
-      description: [''],
+      destination_id: [null],
+      category_id: [null],
+      days: [1, [Validators.min(0)]],
+      nights: [0, [Validators.min(0)]],
       price: [0, [Validators.required, Validators.min(0)]],
+      inclusions: [''],
+      exclusions: [''],
+      terms: [''],
       status: ['active', Validators.required]
     });
   }
@@ -48,7 +51,7 @@ export class ItinerariesComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.itineraryForm.reset({ status: 'active', duration_days: 1, duration_nights: 0, price: 0 });
+    this.itineraryForm.reset({ status: 'active', days: 1, nights: 0, price: 0 });
   }
   
   showEdit(pkg: Package) { 

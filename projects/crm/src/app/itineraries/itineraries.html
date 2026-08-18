@@ -124,20 +124,77 @@
         }
       </div>
 
-      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Links & Attachments</h6></div>
-
-      <!-- Quotation -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Link to Quotation</label>
+      <!-- Duration (Days / Nights) -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Duration (Days)</label>
         <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-file-earmark-text"></i></span>
-          <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="quotation_id">
-            <option [ngValue]="null">Select...</option>
-            @for (q of quotationsResource.value()?.data || []; track q) {
-              <option [value]="q.id">{{q.quotation_no}} ({{q.lead?.name || q.customer?.name || 'No Client'}})</option>
-            }
-          </select>
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar-day"></i></span>
+          <input type="number" class="form-control bg-light border-0 py-2" formControlName="days" min="0">
         </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Duration (Nights)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-moon"></i></span>
+          <input type="number" class="form-control bg-light border-0 py-2" formControlName="nights" min="0">
+        </div>
+      </div>
+
+      <!-- IDs (Destination / Category) -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Destination ID</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
+          <input type="number" class="form-control bg-light border-0 py-2" formControlName="destination_id" min="1">
+        </div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Category ID</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-tags"></i></span>
+          <input type="number" class="form-control bg-light border-0 py-2" formControlName="category_id" min="1">
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Package Price <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted fw-bold">₹</span>
+          <input type="number" class="form-control bg-light border-0 py-2 fw-bold text-slate-800" formControlName="price" placeholder="0.00" [ngClass]="{'border border-danger': itineraryForm.get('price')?.invalid && itineraryForm.get('price')?.touched}">
+        </div>
+        @if (itineraryForm.get('price')?.invalid && itineraryForm.get('price')?.touched) {
+          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Price is required</div>
+        }
+      </div>
+
+      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Terms & Details</h6></div>
+
+      <!-- Inclusions -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Inclusions</label>
+        <textarea class="form-control bg-light border-0 py-2" formControlName="inclusions" rows="2" placeholder="e.g. Breakfast, Sightseeing"></textarea>
+      </div>
+
+      <!-- Exclusions -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Exclusions</label>
+        <textarea class="form-control bg-light border-0 py-2" formControlName="exclusions" rows="2" placeholder="e.g. Flights, Personal Expenses"></textarea>
+      </div>
+
+      <!-- Terms -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Terms & Conditions</label>
+        <textarea class="form-control bg-light border-0 py-2" formControlName="terms" rows="2" placeholder="e.g. 50% advance required"></textarea>
+      </div>
+
+      <!-- Status -->
+      <div class="col-md-6 mt-3">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Status <span class="text-danger">*</span></label>
+        <select class="form-select bg-light border-0 py-2 text-slate-700 fw-bold" formControlName="status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
     </form>
