@@ -1,0 +1,248 @@
+<div class="container-fluid p-0">
+  
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+    <div>
+      <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
+        Leads 
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{leads.length}} Total</span>
+      </h3>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage, track, and assign your incoming leads efficiently.</p>
+    </div>
+    
+    <div class="d-flex align-items-center gap-3">
+      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
+        <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
+          <i class="bi bi-search"></i>
+        </span>
+        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search leads..." style="box-shadow: none;">
+      </div>
+      
+      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showAdd()">
+        <i class="bi bi-plus-lg"></i> New Lead
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="min-width: 1000px;">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Name & Contact</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Source</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Trip Details</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Assigned To</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="border-top-0">
+          <tr *ngFor="let lead of leads" class="border-bottom border-light align-middle group">
+            <td class="ps-4 py-3">
+              <div class="d-flex flex-column">
+                <span class="text-slate-800 fw-bold">{{lead.name}}</span>
+                <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-telephone-fill me-1 text-slate-400"></i>{{lead.phone}}</span>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="badge bg-light text-slate-600 border px-2 py-1 fw-medium"><i class="bi bi-globe me-1"></i> {{lead.source}}</span>
+            </td>
+            <td class="py-3">
+              <div class="d-flex flex-column">
+                <span class="text-slate-700 fw-medium">{{lead.destination}}</span>
+                <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{lead.travelDate}}</span>
+              </div>
+            </td>
+            <td class="py-3">
+              <div *ngIf="lead.assignedTo" class="d-flex align-items-center gap-2">
+                <img [src]="'https://ui-avatars.com/api/?name=' + lead.assignedTo + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
+                <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{lead.assignedTo}}</span>
+              </div>
+              <span *ngIf="!lead.assignedTo" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
+            </td>
+            <td class="py-3">
+              <!-- Using dynamic styling based on status in a real app, hardcoding beautiful badge here -->
+              <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2 fw-bold" style="letter-spacing: 0.3px;">
+                <span class="d-inline-block rounded-circle bg-info me-1" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
+                {{lead.status}}
+              </span>
+            </td>
+            <td class="py-3 text-end pe-4">
+              <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showEdit(lead)" title="Edit">
+                  <i class="bi bi-pencil-square fs-6"></i>
+                </button>
+                <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" (click)="confirmDelete(lead)">
+                  <i class="bi bi-trash3 fs-6"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+      <span class="text-slate-500" style="font-size: 0.85rem;">Showing 1 to 1 of 1 entries</span>
+      <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Previous</a></li>
+          <li class="page-item active"><a class="page-link border-0 rounded-2 bg-primary text-white mx-1" href="javascript:void(0)">1</a></li>
+          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Next</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Lead Offcanvas (Drawer) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="leadFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
+  
+  <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+        <i class="bi bi-person-lines-fill fs-5"></i>
+      </div>
+      <div>
+        <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ view() === 'add' ? 'Create New Lead' : 'Edit Lead Details' }}</h5>
+        <small class="text-slate-500">{{ view() === 'add' ? 'Enter the details of your new lead below.' : 'Update the lead information.' }}</small>
+      </div>
+    </div>
+    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-4 bg-white" style="overflow-y: auto;">
+    <form class="row g-4">
+      
+      <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Client Information</h6></div>
+
+      <!-- Name -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Full Name <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
+          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. Rajesh">
+        </div>
+      </div>
+      <!-- Phone -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Phone Number <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-telephone"></i></span>
+          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. 7503301775">
+        </div>
+      </div>
+      <!-- Email -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-envelope"></i></span>
+          <input type="email" class="form-control bg-light border-0 py-2" placeholder="e.g. rajesh@example.com">
+        </div>
+      </div>
+
+      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Trip Requirements</h6></div>
+
+      <!-- Destination -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Destination</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
+          <input type="text" class="form-control bg-light border-0 py-2" placeholder="e.g. Uttarakhand">
+        </div>
+      </div>
+      <!-- Travel Date -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Travel Date</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar3"></i></span>
+          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600">
+        </div>
+      </div>
+      <!-- Adults & Children -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Pax (Adults / Children)</label>
+        <div class="d-flex gap-2">
+          <input type="number" class="form-control bg-light border-0 py-2" placeholder="Adults" title="Adults">
+          <input type="number" class="form-control bg-light border-0 py-2" placeholder="Children" title="Children">
+        </div>
+      </div>
+      <!-- Budget -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Approx. Budget</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted">₹</span>
+          <input type="number" class="form-control bg-light border-0 py-2" placeholder="20000.00">
+        </div>
+      </div>
+
+      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Lead Tracking</h6></div>
+
+      <!-- Source -->
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Lead Source</label>
+        <select class="form-select bg-light border-0 py-2 text-slate-600">
+          <option>Website</option>
+          <option>Referral</option>
+          <option>Walk-in</option>
+        </select>
+      </div>
+      <!-- Assigned To -->
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Assigned To</label>
+        <select class="form-select bg-light border-0 py-2 text-slate-600">
+          <option>Select...</option>
+          <option>Agent A</option>
+        </select>
+      </div>
+      <!-- Status -->
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
+        <select class="form-select bg-light border-0 py-2 text-slate-600">
+          <option>New</option>
+          <option>Contacted</option>
+          <option>Confirmed</option>
+          <option>Lost</option>
+        </select>
+      </div>
+
+      <!-- Notes -->
+      <div class="col-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Special Notes / Requirements</label>
+        <textarea class="form-control bg-light border-0 py-3" rows="3" placeholder="Enter any extra details or requirements here..."></textarea>
+      </div>
+    </form>
+  </div>
+  
+  <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
+    <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" data-bs-dismiss="offcanvas">
+      <i class="bi bi-check2"></i> Save Lead
+    </button>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom-0 pb-0 bg-white">
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center px-5 pt-0 pb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-4" style="width: 80px; height: 80px;">
+          <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
+        </div>
+        <h4 class="fw-bold text-slate-800 mb-2">Delete Lead?</h4>
+        <p class="text-slate-500 mb-0">Are you sure you want to delete <strong *ngIf="leadToDelete" class="text-slate-700">{{leadToDelete.name}}</strong>? This action cannot be undone and all associated data will be permanently lost.</p>
+      </div>
+      <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
+        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" data-bs-dismiss="modal" (click)="deleteLead()">
+          <i class="bi bi-trash3"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

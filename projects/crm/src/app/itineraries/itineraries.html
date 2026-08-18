@@ -1,0 +1,177 @@
+<div class="container-fluid p-0">
+  
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
+    <div>
+      <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
+        Itineraries 
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{itineraries.length}} Total</span>
+      </h3>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Plan and organize trip schedules for your clients.</p>
+    </div>
+    
+    <div class="d-flex align-items-center gap-3">
+      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
+        <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
+          <i class="bi bi-search"></i>
+        </span>
+        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search itineraries..." style="box-shadow: none;">
+      </div>
+      
+      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showAdd()">
+        <i class="bi bi-plus-lg"></i> Add Itinerary
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Title</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Quotation</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Package</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="border-top-0">
+          <tr *ngFor="let item of itineraries" class="border-bottom border-light align-middle group">
+            <td class="ps-4 py-3">
+              <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                  <i class="bi bi-map"></i>
+                </div>
+                <span class="text-slate-800 fw-bold">{{item.title}}</span>
+              </div>
+            </td>
+            <td class="py-3">
+              <span class="text-slate-700 fw-medium font-monospace bg-light border px-2 py-1 rounded-2" *ngIf="item.quotation">{{item.quotation}}</span>
+              <span class="text-slate-400 fst-italic" *ngIf="!item.quotation">—</span>
+            </td>
+            <td class="py-3">
+              <div class="d-flex align-items-center gap-2" *ngIf="item.package">
+                <i class="bi bi-box text-primary"></i>
+                <span class="text-slate-700 fw-medium">{{item.package}}</span>
+              </div>
+              <span class="text-slate-400 fst-italic" *ngIf="!item.package">—</span>
+            </td>
+            <td class="py-3 text-end pe-4">
+              <div class="d-flex justify-content-end gap-1">
+                <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showEdit(item)" title="Edit">
+                  <i class="bi bi-pencil-square fs-6"></i>
+                </button>
+                <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteItineraryModal" (click)="confirmDelete(item)">
+                  <i class="bi bi-trash3 fs-6"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
+      <span class="text-slate-500" style="font-size: 0.85rem;">Showing 1 to 1 of 1 entries</span>
+      <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Previous</a></li>
+          <li class="page-item active"><a class="page-link border-0 rounded-2 bg-primary text-white mx-1" href="javascript:void(0)">1</a></li>
+          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Next</a></li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Itinerary Offcanvas (Drawer) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="itineraryFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
+  
+  <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+        <i class="bi bi-map fs-5"></i>
+      </div>
+      <div>
+        <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ view() === 'add' ? 'Create New Itinerary' : 'Edit Itinerary Details' }}</h5>
+        <small class="text-slate-500">{{ view() === 'add' ? 'Start planning a trip schedule.' : 'Update the title or linked packages.' }}</small>
+      </div>
+    </div>
+    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-4 p-md-5 bg-white" style="overflow-y: auto;">
+    <form class="row g-4">
+      
+      <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Trip Overview</h6></div>
+
+      <!-- Title -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Itinerary Title <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-type"></i></span>
+          <input type="text" class="form-control bg-light border-0 py-2 fw-medium text-slate-800 fs-5" placeholder="e.g. DELHI TO UTTARAKHAND">
+        </div>
+      </div>
+
+      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Links & Attachments</h6></div>
+
+      <!-- Quotation -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Link to Quotation</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-file-earmark-text"></i></span>
+          <select class="form-select bg-light border-0 py-2 text-slate-700">
+            <option>Select...</option>
+            <option>001</option>
+            <option>002</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Package -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Link to Package</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-box"></i></span>
+          <select class="form-select bg-light border-0 py-2 text-slate-700">
+            <option>Select...</option>
+            <option>3 Night 2 Days</option>
+          </select>
+        </div>
+      </div>
+
+    </form>
+  </div>
+  
+  <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
+    <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" data-bs-dismiss="offcanvas">
+      <i class="bi bi-check2"></i> Save Itinerary
+    </button>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteItineraryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom-0 pb-0 bg-white">
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center px-5 pt-0 pb-4">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-4" style="width: 80px; height: 80px;">
+          <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
+        </div>
+        <h4 class="fw-bold text-slate-800 mb-2">Delete Itinerary?</h4>
+        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete the itinerary <strong *ngIf="itemToDelete" class="text-slate-700">{{itemToDelete.title}}</strong>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
+        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" data-bs-dismiss="modal" (click)="deleteItem()">
+          <i class="bi bi-trash3"></i> Yes, Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

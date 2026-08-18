@@ -1,1 +1,63 @@
 /* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+body {
+  background-color: #f8fafc; /* modern lighter gray */
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #334155;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Default / Blue Theme */
+:root, [data-theme="blue"] {
+  --theme-sidebar-bg: #0f172a;
+  --theme-sidebar-active: #3b82f6;
+  --bs-primary: #3b82f6;
+  --bs-primary-rgb: 59, 130, 246;
+}
+
+/* Emerald Theme */
+[data-theme="emerald"] {
+  --theme-sidebar-bg: #022c22;
+  --theme-sidebar-active: #10b981;
+  --bs-primary: #10b981;
+  --bs-primary-rgb: 16, 185, 129;
+  --bs-primary-bg-subtle: #d1fae5;
+  --bs-primary-border-subtle: #a7f3d0;
+  --bs-primary-text-emphasis: #065f46;
+}
+
+/* Violet Theme */
+[data-theme="violet"] {
+  --theme-sidebar-bg: #2e1065;
+  --theme-sidebar-active: #8b5cf6;
+  --bs-primary: #8b5cf6;
+  --bs-primary-rgb: 139, 92, 246;
+  --bs-primary-bg-subtle: #ede9fe;
+  --bs-primary-border-subtle: #ddd6fe;
+  --bs-primary-text-emphasis: #4c1d95;
+}
+
+/* Rose Theme */
+[data-theme="rose"] {
+  --theme-sidebar-bg: #4c0519;
+  --theme-sidebar-active: #f43f5e;
+  --bs-primary: #f43f5e;
+  --bs-primary-rgb: 244, 63, 94;
+  --bs-primary-bg-subtle: #ffe4e6;
+  --bs-primary-border-subtle: #fecdd3;
+  --bs-primary-text-emphasis: #881337;
+}
+
+/* Override bootstrap utilities with our variables */
+.bg-primary { background-color: var(--bs-primary) !important; }
+.text-primary { color: var(--bs-primary) !important; }
+.btn-primary { 
+  background-color: var(--bs-primary) !important; 
+  border-color: var(--bs-primary) !important; 
+}
+.bg-primary-subtle { background-color: var(--bs-primary-bg-subtle, #eff6ff) !important; }
