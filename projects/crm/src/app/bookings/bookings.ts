@@ -31,10 +31,10 @@ export class BookingsComponent {
     private fb: FormBuilder
   ) {
     this.bookingForm = this.fb.group({
-      booking_no: ['', Validators.required],
       lead_id: [null],
       customer_id: [null],
       package_id: [null],
+      travel_date: ['', Validators.required],
       total_amount: [0, [Validators.required, Validators.min(1)]],
       paid_amount: [0],
       status: ['pending', Validators.required]
