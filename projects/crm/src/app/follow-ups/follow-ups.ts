@@ -37,9 +37,9 @@ export class FollowUpsComponent {
       lead_id: [null, Validators.required],
       follow_up_date: ['', Validators.required],
       follow_up_time: ['', Validators.required],
-      type: ['Call', Validators.required],
+      type: ['call', Validators.required],
       remarks: [''],
-      status: ['Pending', Validators.required]
+      status: ['pending', Validators.required]
     });
   }
 
@@ -47,7 +47,7 @@ export class FollowUpsComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.followUpForm.reset({ type: 'Call', status: 'Pending' });
+    this.followUpForm.reset({ type: 'call', status: 'pending' });
   }
   
   showEdit(followUp: FollowUp) { 

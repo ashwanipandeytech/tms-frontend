@@ -53,9 +53,9 @@
               <td class="py-3">
                 <div class="d-flex align-items-center gap-2">
                   <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-slate-600" style="width: 32px; height: 32px;">
-                    <i class="bi" [ngClass]="{'bi-telephone': item.type === 'Call', 'bi-envelope': item.type === 'Email', 'bi-people': item.type === 'Meeting', 'bi-chat-dots': item.type !== 'Call' && item.type !== 'Email' && item.type !== 'Meeting'}"></i>
+                    <i class="bi" [ngClass]="{'bi-telephone': item.type === 'call', 'bi-envelope': item.type === 'email', 'bi-people': item.type === 'meeting', 'bi-whatsapp': item.type === 'whatsapp', 'bi-chat-dots': item.type !== 'call' && item.type !== 'email' && item.type !== 'meeting' && item.type !== 'whatsapp'}"></i>
                   </div>
-                  <span class="text-slate-700 fw-medium">{{item.type}}</span>
+                  <span class="text-slate-700 fw-medium">{{item.type | titlecase}}</span>
                 </div>
               </td>
               <td class="py-3">
@@ -64,17 +64,17 @@
               <td class="py-3">
                 <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
-                      'bg-success-subtle text-success': item.status === 'Done',
-                      'bg-warning-subtle text-warning': item.status === 'Scheduled' || item.status === 'Pending',
-                      'bg-danger-subtle text-danger': item.status === 'Cancelled'
+                      'bg-success-subtle text-success': item.status === 'done',
+                      'bg-warning-subtle text-warning': item.status === 'pending',
+                      'bg-danger-subtle text-danger': item.status === 'missed'
                     }" style="letter-spacing: 0.3px;">
                   <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
-                        'bg-success': item.status === 'Done',
-                        'bg-warning': item.status === 'Scheduled' || item.status === 'Pending',
-                        'bg-danger': item.status === 'Cancelled'
+                        'bg-success': item.status === 'done',
+                        'bg-warning': item.status === 'pending',
+                        'bg-danger': item.status === 'missed'
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-                  {{item.status}}
+                  {{item.status | titlecase}}
                 </span>
               </td>
               <td class="py-3 text-end pe-4">
@@ -148,10 +148,10 @@
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-chat-left-dots"></i></span>
           <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="type">
-            <option value="Call">Call</option>
-            <option value="Email">Email</option>
-            <option value="Meeting">Meeting</option>
-            <option value="WhatsApp">WhatsApp</option>
+            <option value="call">Call</option>
+            <option value="email">Email</option>
+            <option value="meeting">Meeting</option>
+            <option value="whatsapp">WhatsApp</option>
           </select>
         </div>
       </div>
@@ -184,10 +184,9 @@
       <div class="col-md-4">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
         <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="status">
-          <option value="Done">Done</option>
-          <option value="Scheduled">Scheduled</option>
-          <option value="Pending">Pending</option>
-          <option value="Cancelled">Cancelled</option>
+          <option value="done">Done</option>
+          <option value="pending">Pending</option>
+          <option value="missed">Missed</option>
         </select>
       </div>
 
