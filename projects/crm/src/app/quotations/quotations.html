@@ -239,9 +239,9 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Valid Till</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar-check"></i></span>
-          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="valid_until" [ngClass]="{'border border-danger': quotationForm.get('valid_until')?.invalid && quotationForm.get('valid_until')?.touched}">
+          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="valid_till" [ngClass]="{'border border-danger': quotationForm.get('valid_till')?.invalid && quotationForm.get('valid_till')?.touched}">
         </div>
-        @if (quotationForm.get('valid_until')?.invalid && quotationForm.get('valid_until')?.touched) {
+        @if (quotationForm.get('valid_till')?.invalid && quotationForm.get('valid_till')?.touched) {
           <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Valid Till is required</div>
         }
       </div>

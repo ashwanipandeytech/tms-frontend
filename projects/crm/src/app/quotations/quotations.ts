@@ -44,11 +44,13 @@ export class QuotationsComponent {
       quotation_no: ['', Validators.required],
       lead_id: [null],
       customer_id: [null],
+      package_id: [null],
       sub_total: [0, [Validators.required, Validators.min(0)]],
       discount: [0, [Validators.min(0)]],
       gst_percentage: [5, [Validators.min(0)]],
+      gst_amount: [0],
       final_amount: [{value: 0, disabled: true}],
-      valid_until: ['', Validators.required],
+      valid_till: ['', Validators.required],
       status: ['draft', Validators.required]
     });
 
