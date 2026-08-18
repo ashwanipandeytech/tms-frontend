@@ -9,7 +9,10 @@ import { ItinerariesComponent } from './itineraries/itineraries';
 import { BookingsComponent } from './bookings/bookings';
 import { CustomersComponent } from './customers/customers';
 
+import { LoginComponent } from './login/login';
+
 export const routes: Routes = [
+  { path: 'login', component: LoginComponent },
   {
     path: '',
     component: Layout,
@@ -24,5 +27,6 @@ export const routes: Routes = [
       { path: 'bookings', component: BookingsComponent },
       { path: 'customers', component: CustomersComponent }
     ]
-  }
+  },
+  { path: '**', redirectTo: 'login' }
 ];

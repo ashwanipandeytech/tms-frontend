@@ -1,10 +1,11 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { DataTableComponent, DataTableColumnDirective } from '../shared/components/data-table/data-table.component';
 
 @Component({
   selector: 'app-leads',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DataTableComponent, DataTableColumnDirective],
   templateUrl: './leads.html'
 })
 export class LeadsComponent {
