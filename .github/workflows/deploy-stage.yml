@@ -54,7 +54,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: Deployment Successful - CRM Safar System
-          to: ashwanipandeytech@gmail.com, tusharmanusharma@gmail.com, Mail2aman168@gmail.com, pushpendradwivedi9@gmail.com, rohitsingh28dec@gmail.com
+          to: ashwanipandeytech@gmail.com, pushpendradwivedi9@gmail.com, rohitsingh28dec@gmail.com
           from: CRM CI/CD <${{ secrets.MAIL_USERNAME }}>
           body: |
             Deployment of CRM Safar System to stage was successful.
