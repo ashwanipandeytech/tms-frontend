@@ -49,7 +49,7 @@ export class QuotationsComponent {
       gst_percentage: [5, [Validators.min(0)]],
       final_amount: [{value: 0, disabled: true}],
       valid_until: ['', Validators.required],
-      status: ['Draft', Validators.required]
+      status: ['draft', Validators.required]
     });
 
     this.quotationForm.valueChanges.subscribe(val => {
@@ -71,7 +71,7 @@ export class QuotationsComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.quotationForm.reset({ status: 'Draft', sub_total: 0, discount: 0, gst_percentage: 5 });
+    this.quotationForm.reset({ status: 'draft', sub_total: 0, discount: 0, gst_percentage: 5 });
   }
   
   showEdit(quotation: Quotation) { 

@@ -74,19 +74,19 @@
               <td class="py-3">
                 <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
-                      'bg-success-subtle text-success': item.status === 'Accepted',
-                      'bg-warning-subtle text-warning': item.status === 'Sent' || item.status === 'Pending',
-                      'bg-danger-subtle text-danger': item.status === 'Rejected',
+                      'bg-success-subtle text-success': item.status === 'accepted',
+                      'bg-warning-subtle text-warning': item.status === 'sent' || item.status === 'pending',
+                      'bg-danger-subtle text-danger': item.status === 'rejected',
                       'bg-slate-200 text-slate-600': !item.status
                     }" style="letter-spacing: 0.3px;">
                   <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
-                        'bg-success': item.status === 'Accepted',
-                        'bg-warning': item.status === 'Sent' || item.status === 'Pending',
-                        'bg-danger': item.status === 'Rejected',
+                        'bg-success': item.status === 'accepted',
+                        'bg-warning': item.status === 'sent' || item.status === 'pending',
+                        'bg-danger': item.status === 'rejected',
                         'bg-slate-400': !item.status
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-                  {{item.status || 'Draft'}}
+                  {{item.status ? (item.status | titlecase) : 'Draft'}}
                 </span>
               </td>
               <td class="py-3 text-end pe-4">
@@ -228,10 +228,10 @@
       <div class="col-md-6">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
         <select class="form-select bg-light border-0 py-2 text-slate-700 fw-bold" formControlName="status">
-          <option value="Draft">Draft</option>
-          <option value="Sent">Sent</option>
-          <option value="Accepted">Accepted</option>
-          <option value="Rejected">Rejected</option>
+          <option value="draft">Draft</option>
+          <option value="sent">Sent</option>
+          <option value="accepted">Accepted</option>
+          <option value="rejected">Rejected</option>
         </select>
       </div>
       <!-- Valid Till -->
@@ -239,8 +239,11 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Valid Till</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar-check"></i></span>
-          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="valid_until">
+          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="valid_until" [ngClass]="{'border border-danger': quotationForm.get('valid_until')?.invalid && quotationForm.get('valid_until')?.touched}">
         </div>
+        @if (quotationForm.get('valid_until')?.invalid && quotationForm.get('valid_until')?.touched) {
+          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Valid Till is required</div>
+        }
       </div>
 
     </form>

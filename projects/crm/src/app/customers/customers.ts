@@ -33,7 +33,7 @@ export class CustomersComponent {
       phone: ['', Validators.required],
       address: [''],
       type: ['B2C', Validators.required],
-      status: ['Active', Validators.required]
+      status: ['active', Validators.required]
     });
   }
 
@@ -41,7 +41,7 @@ export class CustomersComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.customerForm.reset({ type: 'B2C', status: 'Active' });
+    this.customerForm.reset({ type: 'B2C', status: 'active' });
   }
   
   showEdit(customer: Customer) { 

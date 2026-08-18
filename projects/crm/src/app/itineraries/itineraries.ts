@@ -40,7 +40,7 @@ export class ItinerariesComponent {
       duration_nights: [0, [Validators.required, Validators.min(0)]],
       description: [''],
       price: [0, [Validators.required, Validators.min(0)]],
-      status: ['Draft', Validators.required]
+      status: ['active', Validators.required]
     });
   }
 
@@ -48,7 +48,7 @@ export class ItinerariesComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.itineraryForm.reset({ status: 'Draft', duration_days: 1, duration_nights: 0, price: 0 });
+    this.itineraryForm.reset({ status: 'active', duration_days: 1, duration_nights: 0, price: 0 });
   }
   
   showEdit(pkg: Package) { 

@@ -37,7 +37,7 @@ export class LeadsComponent {
       pax_adults: [0],
       pax_children: [0],
       budget: [0],
-      status: ['New'],
+      status: ['new'],
       assigned_to: [null],
       notes: ['']
     });
@@ -47,7 +47,7 @@ export class LeadsComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.leadForm.reset({ source: 'Website', status: 'New', budget: 0 });
+    this.leadForm.reset({ source: 'Website', status: 'new', budget: 0 });
   }
   
   showEdit(lead: Lead) { 

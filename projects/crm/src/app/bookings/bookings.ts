@@ -37,14 +37,15 @@ export class BookingsComponent {
       package_id: [null],
       total_amount: [0, [Validators.required, Validators.min(1)]],
       paid_amount: [0],
-      status: ['Pending', Validators.required]
+      status: ['pending', Validators.required]
     });
 
     this.paymentForm = this.fb.group({
       amount: [0, [Validators.required, Validators.min(1)]],
-      payment_mode: ['Bank Transfer', Validators.required],
-      transaction_id: ['', Validators.required],
-      payment_date: ['', Validators.required]
+      payment_type: ['advance', Validators.required],
+      payment_mode: ['bank_transfer', Validators.required],
+      txn_reference: ['', Validators.required],
+      paid_at: ['', Validators.required]
     });
   }
 
@@ -52,7 +53,7 @@ export class BookingsComponent {
   
   showAdd() { 
     this.view.set('add'); 
-    this.bookingForm.reset({ status: 'Pending', total_amount: 0, paid_amount: 0 });
+    this.bookingForm.reset({ status: 'pending', total_amount: 0, paid_amount: 0 });
   }
   
   showEdit(booking: Booking) { 
@@ -118,8 +119,9 @@ export class BookingsComponent {
     const due = Number(booking.total_amount) - Number(booking.paid_amount || 0);
     this.paymentForm.patchValue({
       amount: due,
-      payment_mode: 'Bank Transfer',
-      payment_date: new Date().toISOString().split('T')[0]
+      payment_type: 'advance',
+      payment_mode: 'bank_transfer',
+      paid_at: new Date().toISOString().split('T')[0]
     });
   }
 

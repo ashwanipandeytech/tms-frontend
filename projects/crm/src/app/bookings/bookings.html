@@ -68,17 +68,17 @@
               <td class="py-3">
                 <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
-                      'bg-success-subtle text-success': item.status === 'Confirmed' || item.status === 'Completed',
-                      'bg-warning-subtle text-warning': item.status === 'Pending',
-                      'bg-danger-subtle text-danger': item.status === 'Cancelled'
+                      'bg-success-subtle text-success': item.status === 'confirmed' || item.status === 'completed',
+                      'bg-warning-subtle text-warning': item.status === 'pending',
+                      'bg-danger-subtle text-danger': item.status === 'cancelled'
                     }" style="letter-spacing: 0.3px;">
                   <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
-                        'bg-success': item.status === 'Confirmed' || item.status === 'Completed',
-                        'bg-warning': item.status === 'Pending',
-                        'bg-danger': item.status === 'Cancelled'
+                        'bg-success': item.status === 'confirmed' || item.status === 'completed',
+                        'bg-warning': item.status === 'pending',
+                        'bg-danger': item.status === 'cancelled'
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-                  {{item.status}}
+                  {{item.status | titlecase}}
                 </span>
               </td>
               <td class="py-3 text-end pe-4">
@@ -259,8 +259,8 @@
             <label class="form-label text-slate-700 fw-medium small">Payment Type <span class="text-danger">*</span></label>
             <select class="form-select bg-light border-0 py-2" formControlName="payment_type">
               <option value="advance">Advance</option>
-              <option value="part_payment">Part Payment</option>
-              <option value="full_payment">Full Payment</option>
+              <option value="partial">Part Payment</option>
+              <option value="full">Full Payment</option>
             </select>
           </div>
           <div class="col-md-6">
@@ -274,11 +274,17 @@
           </div>
           <div class="col-md-6">
             <label class="form-label text-slate-700 fw-medium small">Txn Reference</label>
-            <input type="text" class="form-control bg-light border-0 py-2" formControlName="txn_reference" placeholder="e.g. UTR or Ref No">
+            <input type="text" class="form-control bg-light border-0 py-2" formControlName="txn_reference" placeholder="e.g. UTR or Ref No" [ngClass]="{'border border-danger': paymentForm.get('txn_reference')?.invalid && paymentForm.get('txn_reference')?.touched}">
+            @if (paymentForm.get('txn_reference')?.invalid && paymentForm.get('txn_reference')?.touched) {
+              <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Required</div>
+            }
           </div>
           <div class="col-md-12">
             <label class="form-label text-slate-700 fw-medium small">Payment Date & Time</label>
-            <input type="text" class="form-control bg-light border-0 py-2" formControlName="paid_at" placeholder="YYYY-MM-DD HH:MM:SS">
+            <input type="text" class="form-control bg-light border-0 py-2" formControlName="paid_at" placeholder="YYYY-MM-DD HH:MM:SS" [ngClass]="{'border border-danger': paymentForm.get('paid_at')?.invalid && paymentForm.get('paid_at')?.touched}">
+            @if (paymentForm.get('paid_at')?.invalid && paymentForm.get('paid_at')?.touched) {
+              <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Required</div>
+            }
           </div>
         </form>
       </div>
