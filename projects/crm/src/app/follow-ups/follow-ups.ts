@@ -35,8 +35,8 @@ export class FollowUpsComponent {
   ) {
     this.followUpForm = this.fb.group({
       lead_id: [null, Validators.required],
-      date: ['', Validators.required],
-      time: ['', Validators.required],
+      follow_up_date: ['', Validators.required],
+      follow_up_time: ['', Validators.required],
       type: ['Call', Validators.required],
       remarks: [''],
       status: ['Pending', Validators.required]

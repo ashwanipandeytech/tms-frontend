@@ -46,8 +46,8 @@
               </td>
               <td class="py-3">
                 <div class="d-flex flex-column">
-                  <span class="text-slate-700 fw-medium"><i class="bi bi-calendar-event me-2 text-slate-400"></i>{{item.date}}</span>
-                  <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-clock me-2 text-slate-400"></i>{{item.time}}</span>
+                  <span class="text-slate-700 fw-medium"><i class="bi bi-calendar-event me-2 text-slate-400"></i>{{item.follow_up_date}}</span>
+                  <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-clock me-2 text-slate-400"></i>{{item.follow_up_time}}</span>
                 </div>
               </td>
               <td class="py-3">
@@ -160,12 +160,12 @@
 
       <!-- Date -->
       <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Date <span class="text-danger">*</span></label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Follow-up Date <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar3"></i></span>
-          <input type="date" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="date" [ngClass]="{'border border-danger': followUpForm.get('date')?.invalid && followUpForm.get('date')?.touched}">
+          <input type="date" formControlName="follow_up_date" class="form-control bg-light border-0 py-2" [ngClass]="{'border border-danger': followUpForm.get('follow_up_date')?.invalid && followUpForm.get('follow_up_date')?.touched}">
         </div>
-        @if (followUpForm.get('date')?.invalid && followUpForm.get('date')?.touched) {
+        @if (followUpForm.get('follow_up_date')?.invalid && followUpForm.get('follow_up_date')?.touched) {
           <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Date is required</div>
         }
       </div>
@@ -174,7 +174,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Time</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-clock"></i></span>
-          <input type="time" class="form-control bg-light border-0 py-2 text-slate-600" formControlName="time">
+          <input type="time" formControlName="follow_up_time" class="form-control bg-light border-0 py-2">
         </div>
       </div>
 
