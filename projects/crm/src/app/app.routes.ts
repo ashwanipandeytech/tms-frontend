@@ -8,6 +8,7 @@ import { QuotationsComponent } from './quotations/quotations';
 import { ItinerariesComponent } from './itineraries/itineraries';
 import { BookingsComponent } from './bookings/bookings';
 import { CustomersComponent } from './customers/customers';
+import { authGuard } from './core/guards/auth.guard';
 
 import { LoginComponent } from './login/login';
 
@@ -16,6 +17,7 @@ export const routes: Routes = [
   {
     path: '',
     component: Layout,
+    canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },

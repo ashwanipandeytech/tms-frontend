@@ -31,7 +31,8 @@
               }
             ],
             "styles": [
-              "projects/crm/src/styles.scss"
+              "projects/crm/src/styles.scss",
+              "node_modules/ngx-toastr/toastr.css"
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
@@ -121,7 +122,8 @@
               }
             ],
             "styles": [
-              "projects/crm/src/styles.scss"
+              "projects/crm/src/styles.scss",
+              "node_modules/ngx-toastr/toastr.css"
             ]
           }
         }

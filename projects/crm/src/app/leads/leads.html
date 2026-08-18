@@ -46,18 +46,18 @@
       <ng-template let-row>
         <div class="d-flex flex-column">
           <span class="text-slate-700 fw-medium">{{row.destination}}</span>
-          <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{row.travelDate}}</span>
+          <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{row.travel_date}}</span>
         </div>
       </ng-template>
     </ng-template>
 
-    <ng-template appColumn="assignedTo" header="Assigned To">
+    <ng-template appColumn="assigned_to" header="Assigned To">
       <ng-template let-row>
-        <div *ngIf="row.assignedTo" class="d-flex align-items-center gap-2">
-          <img [src]="'https://ui-avatars.com/api/?name=' + row.assignedTo + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
-          <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{row.assignedTo}}</span>
+        <div *ngIf="row.assigned_to" class="d-flex align-items-center gap-2">
+          <img [src]="'https://ui-avatars.com/api/?name=' + row.assigned_to + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
+          <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{row.assigned_to}}</span>
         </div>
-        <span *ngIf="!row.assignedTo" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
+        <span *ngIf="!row.assigned_to" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
       </ng-template>
     </ng-template>
 

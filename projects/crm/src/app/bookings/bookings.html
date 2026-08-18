@@ -44,7 +44,7 @@
         <tbody class="border-top-0">
           <tr *ngFor="let item of bookings" class="border-bottom border-light align-middle group">
             <td class="ps-4 py-3">
-              <span class="text-slate-700 fw-bold font-monospace bg-light border px-2 py-1 rounded-2">{{item.bookingNo}}</span>
+              <span class="text-slate-700 fw-bold font-monospace bg-light border px-2 py-1 rounded-2">{{item.booking_no}}</span>
             </td>
             <td class="py-3">
               <span class="text-slate-800 fw-bold">{{item.customer}}</span>
@@ -53,16 +53,16 @@
               <span class="text-slate-700 fw-medium"><i class="bi bi-box me-2 text-primary"></i>{{item.package}}</span>
             </td>
             <td class="py-3">
-              <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-check me-2 text-slate-400"></i>{{item.travelDate}}</span>
+              <span class="text-slate-600 fw-medium"><i class="bi bi-calendar-check me-2 text-slate-400"></i>{{item.travel_date}}</span>
             </td>
             <td class="py-3">
-              <span class="text-slate-800 fw-bold">₹ {{item.total}}</span>
+              <span class="text-slate-800 fw-bold">₹ {{item.total_amount}}</span>
             </td>
             <td class="py-3">
-              <span class="text-success fw-medium">₹ {{item.paid}}</span>
+              <span class="text-success fw-medium">₹ {{item.paid_amount}}</span>
             </td>
             <td class="py-3">
-              <span class="text-danger fw-medium">₹ {{item.due}}</span>
+              <span class="text-danger fw-medium">₹ {{item.due_amount}}</span>
             </td>
             <td class="py-3">
               <span class="badge rounded-pill px-3 py-2 fw-bold" 
@@ -236,7 +236,7 @@
           <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
         </div>
         <h4 class="fw-bold text-slate-800 mb-2">Delete Booking?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete booking <strong *ngIf="itemToDelete" class="text-slate-700 font-monospace">{{itemToDelete.bookingNo}}</strong>? This action cannot be undone and will remove all associated payment records.</p>
+        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete booking <strong *ngIf="itemToDelete" class="text-slate-700 font-monospace">{{itemToDelete.booking_no}}</strong>? This action cannot be undone and will remove all associated payment records.</p>
       </div>
       <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
         <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
