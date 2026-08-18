@@ -66,6 +66,9 @@ export class QuotationsComponent {
       if (this.quotationForm.get('final_amount')?.value !== finalAmt) {
         this.quotationForm.get('final_amount')?.setValue(finalAmt, {emitEvent: false});
       }
+      if (this.quotationForm.get('gst_amount')?.value !== gstAmount) {
+        this.quotationForm.get('gst_amount')?.setValue(gstAmount, {emitEvent: false});
+      }
     });
   }
 
