@@ -5,6 +5,7 @@ import { DataTableComponent, DataTableColumnDirective } from '../shared/componen
 import { firstValueFrom } from 'rxjs';
 import { LeadService } from '../core/services/lead.service';
 import { Lead } from '../core/models/lead.model';
+import { AuthService } from '../core/services/auth.service';
 
 @Component({
   selector: 'app-leads',
@@ -25,7 +26,8 @@ export class LeadsComponent {
 
   constructor(
     private leadService: LeadService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    public authService: AuthService
   ) {
     this.leadForm = this.fb.group({
       name: ['', Validators.required],

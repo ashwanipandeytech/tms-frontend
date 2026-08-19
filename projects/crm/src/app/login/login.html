@@ -17,6 +17,17 @@
 
       <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-floating mb-3">
+          <select class="form-select" id="roleInput" formControlName="role_type" style="border: 1px solid #cbd5e1; border-radius: 0.5rem; height: 3.25rem; font-size: 0.95rem; background-color: #f8fafc;">
+            <option value="Super Admin">Admin</option>
+            <option value="Manager">Manager</option>
+            <option value="Sales Executive">Sales Executive</option>
+            <option value="Operation Team">Operation Team</option>
+            <option value="Accounts">Accounts</option>
+          </select>
+          <label for="roleInput">Login As</label>
+        </div>
+
         <div class="form-floating">
           <input type="email" class="form-control" id="emailInput" placeholder="name@example.com" autocomplete="email" formControlName="email">
           <label for="emailInput">Email</label>

@@ -10,6 +10,7 @@ import { BookingsComponent } from './bookings/bookings';
 import { CustomersComponent } from './customers/customers';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 import { LoginComponent } from './login/login';
 
@@ -36,33 +37,33 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: Dashboard },
-      { path: 'leads', component: LeadsComponent },
-      { path: 'follow-ups', component: FollowUpsComponent },
-      { path: 'coupons', component: CouponsComponent },
-      { path: 'quotations', component: QuotationsComponent },
-      { path: 'itineraries', component: ItinerariesComponent },
-      { path: 'bookings', component: BookingsComponent },
+      { path: 'leads', component: LeadsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive'] } },
+      { path: 'follow-ups', component: FollowUpsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive'] } },
+      { path: 'coupons', component: CouponsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } },
+      { path: 'quotations', component: QuotationsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive'] } },
+      { path: 'itineraries', component: ItinerariesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team'] } },
+      { path: 'bookings', component: BookingsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team', 'Accounts'] } },
       { path: 'customers', component: CustomersComponent },
       
       // Finance
-      { path: 'invoices', component: InvoicesComponent },
-      { path: 'expenses', component: ExpensesComponent },
-      { path: 'vendor-payments', component: VendorPaymentsComponent },
+      { path: 'invoices', component: InvoicesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Accounts'] } },
+      { path: 'expenses', component: ExpensesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Accounts'] } },
+      { path: 'vendor-payments', component: VendorPaymentsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Accounts'] } },
       
       // Inventory
-      { path: 'hotels', component: HotelsComponent },
-      { path: 'resorts', component: ResortsComponent },
-      { path: 'villas', component: VillasComponent },
-      { path: 'destinations', component: DestinationsComponent },
+      { path: 'hotels', component: HotelsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team'] } },
+      { path: 'resorts', component: ResortsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team'] } },
+      { path: 'villas', component: VillasComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team'] } },
+      { path: 'destinations', component: DestinationsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Sales Executive', 'Operation Team'] } },
       
       // Cabs
-      { path: 'cab-bookings', component: CabBookingsComponent },
-      { path: 'vehicles', component: VehiclesComponent },
-      { path: 'cab-vendors', component: CabVendorsComponent },
+      { path: 'cab-bookings', component: CabBookingsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Operation Team'] } },
+      { path: 'vehicles', component: VehiclesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Operation Team'] } },
+      { path: 'cab-vendors', component: CabVendorsComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager', 'Operation Team'] } },
       
       // Admin
-      { path: 'users', component: UsersComponent },
-      { path: 'roles', component: RolesComponent }
+      { path: 'users', component: UsersComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } },
+      { path: 'roles', component: RolesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } }
     ]
   },
   { path: '**', redirectTo: 'login' }

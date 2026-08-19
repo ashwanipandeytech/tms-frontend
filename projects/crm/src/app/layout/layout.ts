@@ -51,7 +51,7 @@ export class Layout implements OnInit {
     @Inject(DOCUMENT) private document: Document,
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
-    private authService: AuthService,
+    public authService: AuthService,
     public loaderService: LoaderService
   ) {
     if (isPlatformBrowser(this.platformId)) {
