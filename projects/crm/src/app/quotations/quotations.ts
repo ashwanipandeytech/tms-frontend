@@ -22,13 +22,8 @@ export class QuotationsComponent {
   itemToDelete: Quotation | null = null;
   itemToEdit: Quotation | null = null;
 
-  leadsResource = resource({
-    loader: () => firstValueFrom(this.leadService.getLeads())
-  });
-
-  customersResource = resource({
-    loader: () => firstValueFrom(this.customerService.getCustomers())
-  });
+  leadsData = signal<Lead[]>([]);
+  customersData = signal<Customer[]>([]);
 
   quotationsResource = resource({
     loader: () => firstValueFrom(this.quotationService.getQuotations())
@@ -72,11 +67,32 @@ export class QuotationsComponent {
     });
   }
 
+  async loadDependencies() {
+    try {
+      if (this.leadsData().length === 0) {
+        const leadsRes = await firstValueFrom(this.leadService.getLeads());
+        if (leadsRes && leadsRes.data) this.leadsData.set(leadsRes.data);
+      }
+    } catch (e) {
+      console.error('Failed to load leads', e);
+    }
+    
+    try {
+      if (this.customersData().length === 0) {
+        const custRes = await firstValueFrom(this.customerService.getCustomers());
+        if (custRes && custRes.data) this.customersData.set(custRes.data);
+      }
+    } catch (e) {
+      console.error('Failed to load customers', e);
+    }
+  }
+
   showList() { this.view.set('list'); }
   
   showAdd() { 
     this.view.set('add'); 
     this.quotationForm.reset({ status: 'draft', sub_total: 0, discount: 0, gst_percentage: 5 });
+    this.loadDependencies();
   }
   
   showEdit(quotation: Quotation) { 
@@ -88,6 +104,7 @@ export class QuotationsComponent {
     if (formData.customer && typeof formData.customer === 'object') formData.customer_id = (formData.customer as any).id;
     
     this.quotationForm.patchValue(formData);
+    this.loadDependencies();
   }
 
   confirmDelete(item: Quotation) {

@@ -15,7 +15,7 @@ export class UsersComponent {
   userForm: FormGroup;
   
   mockUsers = [
-    { id: 1, name: 'Admin User', email: 'admin@safarmusafir.com', role: { name: 'Super Admin' }, status: 'active' },
+    { id: 1, name: 'Admin User', email: 'travel@demohandler.in', role: { name: 'Super Admin' }, status: 'active' },
     { id: 2, name: 'Sales Exec A', email: 'sales@example.com', role: { name: 'Sales Executive' }, status: 'active' },
   ];
 

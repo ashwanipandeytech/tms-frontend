@@ -3,9 +3,11 @@ import { inject } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { catchError, tap } from 'rxjs/operators';
 import { throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const toastr = inject(ToastrService);
+  const router = inject(Router);
 
   return next(req).pipe(
     tap((event) => {
@@ -21,6 +23,19 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError((error: HttpErrorResponse) => {
+      const currentPath = window.location.pathname;
+      const reqUrl = req.url;
+      
+      // Prevent bleed-over: If a customer request fails but we are no longer on customers/quotations, ignore it
+      if (reqUrl.includes('/customers') && !currentPath.includes('/customers') && !currentPath.includes('/quotations')) {
+        return throwError(() => error);
+      }
+      
+      // Same logic for leads, etc., if needed
+      if (reqUrl.includes('/leads') && !currentPath.includes('/leads') && !currentPath.includes('/quotations')) {
+        return throwError(() => error);
+      }
+
       let errorMsg = 'An unknown error occurred!';
       if (error.error instanceof ErrorEvent) {
         // Client side error

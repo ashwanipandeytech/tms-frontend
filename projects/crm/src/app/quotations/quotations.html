@@ -154,7 +154,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Lead</label>
         <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="lead_id">
           <option [ngValue]="null">Select...</option>
-          @for (l of leadsResource.value()?.data || []; track l) {
+          @for (l of leadsData() || []; track l) {
             <option [value]="l.id">{{l.name}}</option>
           }
         </select>
@@ -164,7 +164,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Customer</label>
         <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="customer_id">
           <option [ngValue]="null">Select...</option>
-          @for (c of customersResource.value()?.data || []; track c) {
+          @for (c of customersData() || []; track c) {
             <option [value]="c.id">{{c.name}}</option>
           }
         </select>
