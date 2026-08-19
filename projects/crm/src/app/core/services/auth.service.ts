@@ -53,6 +53,14 @@ export class AuthService {
     return user.role.name.toLowerCase() === roleName.toLowerCase();
   }
 
+  hasAnyRole(roles: string[]): boolean {
+    const user = this.currentUser();
+    if (!user || !user.role) return false;
+    if (user.role.name.toLowerCase() === 'super admin') return true;
+    const userRole = user.role.name.toLowerCase();
+    return roles.some(r => r.toLowerCase() === userRole);
+  }
+
   getToken(): string | null {
     if (typeof window !== 'undefined' && window.localStorage) {
       return localStorage.getItem('authToken');

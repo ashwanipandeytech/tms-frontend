@@ -48,28 +48,42 @@
             </div>
           }
           <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('sales') || isSidebarCollapsed()">
-            <li class="nav-item"><a routerLink="/leads" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-people me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-            <span>Leads</span>
-          }</a></li>
-          <li class="nav-item"><a routerLink="/follow-ups" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-bell me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-          <span>Follow-ups</span>
-        }</a></li>
-        <li class="nav-item"><a routerLink="/coupons" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-ticket-perforated me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-        <span>Coupons</span>
-      }</a></li>
-      <li class="nav-item"><a routerLink="/quotations" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-file-earmark-text me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-      <span>Quotations</span>
-    }</a></li>
-    <li class="nav-item"><a routerLink="/itineraries" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-map me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-    <span>Itineraries</span>
-  }</a></li>
-  <li class="nav-item"><a routerLink="/bookings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-check-circle me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-  <span>Bookings</span>
-}</a></li>
-<li class="nav-item"><a routerLink="/customers" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Customers</span>
-}</a></li>
-</ul>
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+              <li class="nav-item"><a routerLink="/leads" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-people me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Leads</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+              <li class="nav-item"><a routerLink="/follow-ups" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-bell me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Follow-ups</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager'])) {
+              <li class="nav-item"><a routerLink="/coupons" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-ticket-perforated me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Coupons</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+              <li class="nav-item"><a routerLink="/quotations" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-file-earmark-text me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Quotations</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Operation Team'])) {
+              <li class="nav-item"><a routerLink="/itineraries" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-map me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Itineraries</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Operation Team', 'Accounts'])) {
+              <li class="nav-item"><a routerLink="/bookings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-check-circle me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Bookings</span>
+              }</a></li>
+            }
+            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Accounts'])) {
+              <li class="nav-item"><a routerLink="/customers" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+                <span>Customers</span>
+              }</a></li>
+            }
+          </ul>
 </li>
 
 <!-- INVENTORY SECTION -->
