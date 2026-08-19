@@ -1,7 +1,10 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DataTableComponent, DataTableColumnDirective } from '../shared/components/data-table/data-table.component';
+import { UserService } from '../core/services/user.service';
+import { ToastrService } from 'ngx-toastr';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-users',
@@ -13,13 +16,17 @@ import { DataTableComponent, DataTableColumnDirective } from '../shared/componen
 export class UsersComponent {
   view = signal<'list' | 'add' | 'edit'>('list');
   userForm: FormGroup;
+  isSaving = signal(false);
   
-  mockUsers = [
-    { id: 1, name: 'Admin User', email: 'travel@demohandler.in', role: { name: 'Super Admin' }, status: 'active' },
-    { id: 2, name: 'Sales Exec A', email: 'sales@example.com', role: { name: 'Sales Executive' }, status: 'active' },
-  ];
+  usersResource = resource({
+    loader: () => firstValueFrom(this.userService.getUsers())
+  });
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private userService: UserService,
+    private toastr: ToastrService
+  ) {
     this.userForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
@@ -38,7 +45,26 @@ export class UsersComponent {
       this.userForm.markAllAsTouched();
       return;
     }
-    // Normally would call UserService here
-    this.view.set('list');
+    
+    this.isSaving.set(true);
+    const data = this.userForm.value;
+    
+    this.userService.createUser(data).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toastr.success('User created successfully');
+          this.userForm.reset();
+          this.usersResource.reload();
+          // The offcanvas auto-closes due to data-bs-dismiss attribute
+        } else {
+          this.toastr.error(res.message || 'Failed to create user');
+        }
+        this.isSaving.set(false);
+      },
+      error: (err) => {
+        this.toastr.error(err.error?.message || 'Error creating user');
+        this.isSaving.set(false);
+      }
+    });
   }
 }

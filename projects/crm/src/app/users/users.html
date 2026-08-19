@@ -13,7 +13,7 @@
     </div>
   </div>
 
-  <app-data-table [dataList]="mockUsers" [pagination]="true">
+  <app-data-table [dataList]="usersResource.value()?.data || []" [pagination]="true">
     <ng-template appColumn="name" header="Name & Contact" let-row>
       <div class="d-flex flex-column">
         <span class="text-slate-800 fw-bold">{{row.name}}</span>
@@ -74,8 +74,11 @@
   
   <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
     <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
-    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveUser()" [attr.data-bs-dismiss]="userForm.valid ? 'offcanvas' : null">
-      <i class="bi bi-check2"></i> Save User
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveUser()" [disabled]="userForm.invalid || isSaving()" [attr.data-bs-dismiss]="userForm.valid ? 'offcanvas' : null">
+      @if (isSaving()) {
+        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      }
+      <i class="bi bi-check2"></i> {{ isSaving() ? 'Saving...' : 'Save User' }}
     </button>
   </div>
 </div>
