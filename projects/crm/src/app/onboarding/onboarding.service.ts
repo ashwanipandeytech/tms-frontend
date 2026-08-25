@@ -1,4 +1,9 @@
 import { Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+
 
 export type BillingCycle = 'monthly' | 'quarterly' | 'half_yearly' | 'yearly';
 
@@ -32,15 +37,23 @@ export interface CompanyDetails {
 export class OnboardingService {
   selectedPlan = signal<SubscriptionPlan | null>(null);
   billingCycle = signal<BillingCycle>('monthly');
-  companyDetails = signal<CompanyDetails | null>(null);
+  companyDetails = signal<any | null>(null);
+
+  private apiUrl = `${environment.apiUrl}`;
+
+  constructor(private http: HttpClient) {}
 
   setPlan(plan: SubscriptionPlan, cycle: BillingCycle) {
     this.selectedPlan.set(plan);
     this.billingCycle.set(cycle);
   }
 
-  setCompanyDetails(details: CompanyDetails) {
+  setCompanyDetails(details: any) {
     this.companyDetails.set(details);
+  }
+
+  createTenant(payload: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/admin/tenants`, payload);
   }
 
   clear() {

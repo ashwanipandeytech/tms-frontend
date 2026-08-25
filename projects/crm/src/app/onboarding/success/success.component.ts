@@ -88,13 +88,13 @@ export class SuccessComponent implements OnInit {
       // but in real app we might redirect to pricing.
       // this.router.navigate(['/pricing']);
     } else {
-      this.companyName = details.name;
+      this.companyName = details.company_name || 'Your Company';
       this.planName = plan.name;
       this.billingCycle = cycle.replace('_', ' ');
-      this.usersCount = details.users;
+      this.usersCount = details.addon_user_seats || 1;
       
       const cleanName = this.companyName.toLowerCase().replace(/[^a-z0-9]/g, '');
-      this.workspaceUrl = `${cleanName}.mycrm.com`;
+      this.workspaceUrl = `${details.subdomain || cleanName}.demohandler.in`;
     }
   }
 

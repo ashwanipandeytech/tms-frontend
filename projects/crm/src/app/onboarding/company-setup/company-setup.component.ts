@@ -54,11 +54,11 @@ import { OnboardingService } from '../onboarding.service';
                 <form [formGroup]="companyForm" (ngSubmit)="onSubmit()">
                   <div class="mb-4">
                     <label class="form-label fw-semibold">Company Name *</label>
-                    <input type="text" class="form-control" formControlName="name" placeholder="Acme Inc." [class.is-invalid]="isInvalid('name')">
+                    <input type="text" class="form-control" formControlName="company_name" placeholder="Acme Inc." [class.is-invalid]="isInvalid('company_name')">
                     <div class="invalid-feedback">Company name is required.</div>
                   </div>
 
-                  <div class="mb-4">
+                  <div class="mb-4 d-none">
                     <label class="form-label fw-semibold">Subdomain Prefix *</label>
                     <div class="input-group">
                       <input type="text" class="form-control" formControlName="subdomain" placeholder="acme" [class.is-invalid]="isInvalid('subdomain')">
@@ -70,27 +70,54 @@ import { OnboardingService } from '../onboarding.service';
                   <div class="row g-3 mb-4">
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Primary Contact Name *</label>
-                      <input type="text" class="form-control" formControlName="contactName" placeholder="John Doe" [class.is-invalid]="isInvalid('contactName')">
+                      <input type="text" class="form-control" formControlName="admin_name" placeholder="John Doe" [class.is-invalid]="isInvalid('admin_name')">
                       <div class="invalid-feedback">Contact name is required.</div>
                     </div>
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Phone Number *</label>
-                      <input type="text" class="form-control" formControlName="contactPhone" placeholder="+1 (555) 000-0000" [class.is-invalid]="isInvalid('contactPhone')">
-                      <div class="invalid-feedback">Valid phone number is required.</div>
+                      <div class="input-group">
+                        <select class="form-select bg-light text-muted" style="max-width: 100px;" formControlName="country_code">
+                          <option value="+91">+91</option>
+                          <option value="+1">+1</option>
+                          <option value="+44">+44</option>
+                        </select>
+                        <input type="text" class="form-control" formControlName="admin_phone" placeholder="9811122334" [class.is-invalid]="isInvalid('admin_phone')">
+                        <div class="invalid-feedback">Valid 10-digit phone number is required.</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row g-3 mb-4 d-none">
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Email *</label>
+                      <input type="email" class="form-control" formControlName="admin_email" placeholder="admin@acme.com" [class.is-invalid]="isInvalid('admin_email')">
+                      <div class="invalid-feedback">Valid email is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label fw-semibold">Password *</label>
+                      <input type="password" class="form-control" formControlName="initial_password" placeholder="Password@123" [class.is-invalid]="isInvalid('initial_password')">
+                      <div class="invalid-feedback">Password must be at least 8 characters.</div>
                     </div>
                   </div>
 
                   <!-- CRM Preferences -->
-                  <h5 class="fw-bold mb-3 mt-4">CRM Preferences</h5>
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold">Number of CRM Users *</label>
-                    <div class="d-flex align-items-center gap-3">
-                      <input type="range" class="form-range flex-grow-1" min="1" max="100" 
-                             [value]="companyForm.get('users')?.value"
-                             (input)="updateUsers($event)">
-                      <input type="number" class="form-control text-center fw-bold" style="width: 80px;" formControlName="users">
+                  <div class="d-none">
+                    <h5 class="fw-bold mb-3 mt-4">CRM Preferences</h5>
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold">Number of CRM Users *</label>
+                      <div class="d-flex align-items-center gap-3">
+                        <input type="range" class="form-range flex-grow-1" min="1" max="100" 
+                               [value]="companyForm.get('addon_user_seats')?.value"
+                               (input)="updateUsers($event)">
+                        <input type="number" class="form-control text-center fw-bold" style="width: 80px;" formControlName="addon_user_seats">
+                      </div>
+                      <div class="small text-muted mt-1">Pricing dynamically updates based on users.</div>
                     </div>
-                    <div class="small text-muted mt-1">Pricing dynamically updates based on users.</div>
+                  </div>
+
+                  <!-- API Error Message -->
+                  <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+                    {{ errorMessage }}
                   </div>
 
                   <hr class="my-4">
@@ -133,7 +160,7 @@ import { OnboardingService } from '../onboarding.service';
                 </div>
                 <div class="d-flex justify-content-between mb-2 small">
                   <span class="text-muted">Users</span>
-                  <span class="fw-medium">x {{ companyForm.get('users')?.value || 1 }}</span>
+                  <span class="fw-medium">x {{ companyForm.get('addon_user_seats')?.value || 1 }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2 small" *ngIf="onboardingService.billingCycle() !== 'monthly'">
                   <span class="text-muted">Billing Period</span>
@@ -175,11 +202,14 @@ export class CompanySetupComponent implements OnInit {
     }
 
     this.companyForm = this.fb.group({
-      name: ['', Validators.required],
-      subdomain: ['', Validators.required],
-      contactName: ['', Validators.required],
-      contactPhone: ['', Validators.required],
-      users: [1, [Validators.required, Validators.min(1)]]
+      company_name: ['', Validators.required],
+      subdomain: [''],
+      admin_name: ['', Validators.required],
+      country_code: ['+91', Validators.required],
+      admin_phone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
+      admin_email: [''],
+      initial_password: [''],
+      addon_user_seats: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -189,7 +219,7 @@ export class CompanySetupComponent implements OnInit {
   }
 
   updateUsers(event: any) {
-    this.companyForm.patchValue({ users: parseInt(event.target.value, 10) });
+    this.companyForm.patchValue({ addon_user_seats: parseInt(event.target.value, 10) });
   }
 
   getBasePrice(): number {
@@ -219,10 +249,12 @@ export class CompanySetupComponent implements OnInit {
   }
 
   calculateTotal(): number {
-    const users = this.companyForm?.get('users')?.value || 1;
+    const users = this.companyForm?.get('addon_user_seats')?.value || 1;
     let multiplier = this.getMultiplier();
     return this.getBasePrice() * users * multiplier;
   }
+
+  errorMessage = '';
 
   onSubmit() {
     if (this.companyForm.invalid) {
@@ -231,12 +263,37 @@ export class CompanySetupComponent implements OnInit {
     }
 
     this.loading = true;
+    this.errorMessage = '';
     
-    // Simulate API call
-    setTimeout(() => {
-      this.onboardingService.setCompanyDetails(this.companyForm.value);
-      this.loading = false;
-      this.router.navigate(['/onboarding/success']);
-    }, 1500);
+    const plan = this.onboardingService.selectedPlan();
+    
+    // Fallback ID mapping for demo purposes. In reality, ID comes from the API.
+    const planIdMapping: any = { 'starter': 1, 'professional': 2, 'business': 3, 'enterprise': 4 };
+    const planId = plan ? planIdMapping[plan.id] || 1 : 1;
+
+    const payload = {
+      ...this.companyForm.value,
+      plan_id: planId,
+      billing_cycle: this.onboardingService.billingCycle(),
+      database_type: 'shared'
+    };
+    
+    // Save locally for the success page display
+    this.onboardingService.setCompanyDetails(payload);
+
+    this.onboardingService.createTenant(payload).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success) {
+          this.router.navigate(['/onboarding/success']);
+        } else {
+          this.errorMessage = res.message || 'Failed to create company';
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        this.errorMessage = err.error?.message || 'An error occurred during onboarding';
+      }
+    });
   }
 }
