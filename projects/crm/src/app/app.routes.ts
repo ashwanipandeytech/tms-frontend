@@ -33,7 +33,6 @@ import { CompanySetupComponent } from './onboarding/company-setup/company-setup.
 import { SuccessComponent } from './onboarding/success/success.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'pricing', pathMatch: 'full' },
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
   { path: 'pricing', component: PricingComponent },
   { path: 'onboarding/company', component: CompanySetupComponent },

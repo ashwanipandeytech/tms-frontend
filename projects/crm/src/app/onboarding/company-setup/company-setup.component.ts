@@ -52,94 +52,31 @@ import { OnboardingService } from '../onboarding.service';
                 <h2 class="fw-bold mb-4">Tell us about your company</h2>
                 
                 <form [formGroup]="companyForm" (ngSubmit)="onSubmit()">
-                  <!-- Logo Upload -->
                   <div class="mb-4">
-                    <label class="form-label fw-semibold">Company Logo</label>
-                    <div class="d-flex align-items-center gap-3">
-                      <div class="bg-light border border-dashed rounded-3 d-flex align-items-center justify-content-center text-muted" style="width: 80px; height: 80px;">
-                        <i class="bi bi-building fs-3" *ngIf="!logoPreview"></i>
-                        <img *ngIf="logoPreview" [src]="logoPreview" alt="Logo" class="img-fluid rounded-3" style="max-height: 100%;">
-                      </div>
-                      <div>
-                        <button type="button" class="btn btn-outline-primary btn-sm mb-1" (click)="fileInput.click()">Upload Logo</button>
-                        <input type="file" #fileInput class="d-none" accept="image/*" (change)="onFileSelected($event)">
-                        <div class="small text-muted">JPG, PNG or SVG. Max 2MB.</div>
-                      </div>
-                    </div>
+                    <label class="form-label fw-semibold">Company Name *</label>
+                    <input type="text" class="form-control" formControlName="name" placeholder="Acme Inc." [class.is-invalid]="isInvalid('name')">
+                    <div class="invalid-feedback">Company name is required.</div>
                   </div>
 
-                  <!-- Basic Info -->
-                  <div class="row g-3 mb-4">
-                    <div class="col-md-6">
-                      <label class="form-label fw-semibold">Company Name *</label>
-                      <input type="text" class="form-control" formControlName="name" placeholder="Acme Inc." [class.is-invalid]="isInvalid('name')">
-                      <div class="invalid-feedback">Company name is required.</div>
+                  <div class="mb-4">
+                    <label class="form-label fw-semibold">Subdomain Prefix *</label>
+                    <div class="input-group">
+                      <input type="text" class="form-control" formControlName="subdomain" placeholder="acme" [class.is-invalid]="isInvalid('subdomain')">
+                      <span class="input-group-text bg-light text-muted">.demohandler.in</span>
                     </div>
-                    <div class="col-md-6">
-                      <label class="form-label fw-semibold">Website *</label>
-                      <input type="text" class="form-control" formControlName="website" placeholder="acme.com" [class.is-invalid]="isInvalid('website')">
-                      <div class="invalid-feedback">Valid website is required.</div>
-                    </div>
+                    <div class="invalid-feedback" [class.d-block]="isInvalid('subdomain')">Subdomain is required.</div>
                   </div>
 
                   <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                      <label class="form-label fw-semibold">Industry *</label>
-                      <select class="form-select" formControlName="industry" [class.is-invalid]="isInvalid('industry')">
-                        <option value="">Select Industry</option>
-                        <option value="technology">Technology & Software</option>
-                        <option value="retail">Retail & E-commerce</option>
-                        <option value="manufacturing">Manufacturing</option>
-                        <option value="services">Professional Services</option>
-                        <option value="other">Other</option>
-                      </select>
+                      <label class="form-label fw-semibold">Primary Contact Name *</label>
+                      <input type="text" class="form-control" formControlName="contactName" placeholder="John Doe" [class.is-invalid]="isInvalid('contactName')">
+                      <div class="invalid-feedback">Contact name is required.</div>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label fw-semibold">Company Size *</label>
-                      <select class="form-select" formControlName="size" [class.is-invalid]="isInvalid('size')">
-                        <option value="">Select Size</option>
-                        <option value="1-10">1-10 employees</option>
-                        <option value="11-50">11-50 employees</option>
-                        <option value="51-200">51-200 employees</option>
-                        <option value="201-500">201-500 employees</option>
-                        <option value="500+">500+ employees</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- Localization -->
-                  <h5 class="fw-bold mb-3 mt-4">Localization</h5>
-                  <div class="row g-3 mb-4">
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold">Country *</label>
-                      <select class="form-select" formControlName="country" [class.is-invalid]="isInvalid('country')">
-                        <option value="">Select</option>
-                        <option value="US">United States</option>
-                        <option value="UK">United Kingdom</option>
-                        <option value="IN">India</option>
-                        <option value="CA">Canada</option>
-                        <option value="AU">Australia</option>
-                      </select>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold">Timezone *</label>
-                      <select class="form-select" formControlName="timezone" [class.is-invalid]="isInvalid('timezone')">
-                        <option value="">Select</option>
-                        <option value="PST">Pacific Time (PT)</option>
-                        <option value="EST">Eastern Time (ET)</option>
-                        <option value="UTC">UTC</option>
-                        <option value="IST">India Standard (IST)</option>
-                      </select>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label fw-semibold">Currency *</label>
-                      <select class="form-select" formControlName="currency" [class.is-invalid]="isInvalid('currency')">
-                        <option value="">Select</option>
-                        <option value="USD">USD ($)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="GBP">GBP (£)</option>
-                        <option value="INR">INR (₹)</option>
-                      </select>
+                      <label class="form-label fw-semibold">Phone Number *</label>
+                      <input type="text" class="form-control" formControlName="contactPhone" placeholder="+1 (555) 000-0000" [class.is-invalid]="isInvalid('contactPhone')">
+                      <div class="invalid-feedback">Valid phone number is required.</div>
                     </div>
                   </div>
 
@@ -154,23 +91,6 @@ import { OnboardingService } from '../onboarding.service';
                       <input type="number" class="form-control text-center fw-bold" style="width: 80px;" formControlName="users">
                     </div>
                     <div class="small text-muted mt-1">Pricing dynamically updates based on users.</div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold d-block mb-2">Modules Needed (Select multiple)</label>
-                    <div class="row g-2">
-                      <div class="col-sm-6" *ngFor="let mod of availableModules">
-                        <div class="form-check p-2 ps-4">
-                          <input class="form-check-input" type="checkbox" [value]="mod.id" [id]="mod.id" (change)="toggleModule(mod.id)">
-                          <label class="form-check-label w-100" [for]="mod.id">{{ mod.name }}</label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="form-label fw-semibold">Primary Business Goal</label>
-                    <textarea class="form-control" formControlName="goal" rows="2" placeholder="e.g., Increase sales conversions, manage customer support..."></textarea>
                   </div>
 
                   <hr class="my-4">
@@ -247,17 +167,6 @@ export class CompanySetupComponent implements OnInit {
 
   companyForm!: FormGroup;
   loading = false;
-  logoPreview: string | null = null;
-  selectedModules: Set<string> = new Set();
-
-  availableModules = [
-    { id: 'sales', name: 'Sales Pipeline' },
-    { id: 'marketing', name: 'Marketing Automation' },
-    { id: 'support', name: 'Customer Support' },
-    { id: 'inventory', name: 'Inventory Management' },
-    { id: 'invoicing', name: 'Invoicing & Billing' },
-    { id: 'analytics', name: 'Advanced Analytics' }
-  ];
 
   ngOnInit() {
     if (!this.onboardingService.selectedPlan()) {
@@ -267,14 +176,10 @@ export class CompanySetupComponent implements OnInit {
 
     this.companyForm = this.fb.group({
       name: ['', Validators.required],
-      website: ['', Validators.required],
-      industry: ['', Validators.required],
-      size: ['', Validators.required],
-      country: ['', Validators.required],
-      timezone: ['', Validators.required],
-      currency: ['', Validators.required],
-      users: [1, [Validators.required, Validators.min(1)]],
-      goal: ['']
+      subdomain: ['', Validators.required],
+      contactName: ['', Validators.required],
+      contactPhone: ['', Validators.required],
+      users: [1, [Validators.required, Validators.min(1)]]
     });
   }
 
@@ -285,23 +190,6 @@ export class CompanySetupComponent implements OnInit {
 
   updateUsers(event: any) {
     this.companyForm.patchValue({ users: parseInt(event.target.value, 10) });
-  }
-
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.logoPreview = e.target.result;
-      reader.readAsDataURL(file);
-    }
-  }
-
-  toggleModule(moduleId: string) {
-    if (this.selectedModules.has(moduleId)) {
-      this.selectedModules.delete(moduleId);
-    } else {
-      this.selectedModules.add(moduleId);
-    }
   }
 
   getBasePrice(): number {
@@ -346,10 +234,7 @@ export class CompanySetupComponent implements OnInit {
     
     // Simulate API call
     setTimeout(() => {
-      this.onboardingService.setCompanyDetails({
-        ...this.companyForm.value,
-        modules: Array.from(this.selectedModules)
-      });
+      this.onboardingService.setCompanyDetails(this.companyForm.value);
       this.loading = false;
       this.router.navigate(['/onboarding/success']);
     }, 1500);

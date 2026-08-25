@@ -7,7 +7,7 @@ import { AuthService } from '../core/services/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './login.scss'
