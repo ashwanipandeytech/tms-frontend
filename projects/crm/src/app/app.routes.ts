@@ -34,7 +34,7 @@ import { SuccessComponent } from './onboarding/success/success.component';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
-  { path: 'pricing', component: PricingComponent },
+  { path: 'subscription', component: PricingComponent },
   { path: 'onboarding/company', component: CompanySetupComponent },
   { path: 'onboarding/success', component: SuccessComponent },
   {

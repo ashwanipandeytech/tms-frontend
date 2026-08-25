@@ -4,7 +4,8 @@
 
       <!-- Custom CSS Logo matching reference -->
       <div class="logo-wrapper">
-        <div class="logo-icon bg-warning text-dark d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 50px; height: 50px; border-radius: 10px;">
+        <div class="logo-icon bg-warning text-dark d-flex align-items-center justify-content-center mx-auto mb-3"
+          style="width: 50px; height: 50px; border-radius: 10px;">
           <i class="bi bi-airplane-fill fs-2"></i>
         </div>
         <div class="text-center">
@@ -18,9 +19,10 @@
       <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <div class="form-floating mb-3">
-          <select class="form-select" id="roleInput" formControlName="role_type" style="border: 1px solid #cbd5e1; border-radius: 0.5rem; height: 3.25rem; font-size: 0.95rem; background-color: #f8fafc;">
-            <option value="Super Admin">Admin</option>
-            <option value="Manager">Manager</option>
+          <select class="form-select" id="roleInput" formControlName="role_type"
+            style="border: 1px solid #cbd5e1; border-radius: 0.5rem; height: 3.25rem; font-size: 0.95rem; background-color: #f8fafc;">
+            <option value="Super Admin">Super Admin</option>
+            <option value="Manager">Co. Manager</option>
             <option value="Sales Executive">Sales Executive</option>
             <option value="Operation Team">Operation Team</option>
             <option value="Accounts">Accounts</option>
@@ -29,12 +31,14 @@
         </div>
 
         <div class="form-floating">
-          <input type="email" class="form-control" id="emailInput" placeholder="name@example.com" autocomplete="email" formControlName="email">
+          <input type="email" class="form-control" id="emailInput" placeholder="name@example.com" autocomplete="email"
+            formControlName="email">
           <label for="emailInput">Email</label>
         </div>
 
         <div class="form-floating">
-          <input type="password" class="form-control" id="passwordInput" placeholder="Password" autocomplete="current-password" formControlName="password">
+          <input type="password" class="form-control" id="passwordInput" placeholder="Password"
+            autocomplete="current-password" formControlName="password">
           <label for="passwordInput">Password</label>
         </div>
 
@@ -49,21 +53,21 @@
         </div>
 
         @if (errorMessage) {
-          <div class="alert alert-danger mt-3">
-            {{ errorMessage }}
-          </div>
+        <div class="alert alert-danger mt-3">
+          {{ errorMessage }}
+        </div>
         }
 
         <button type="submit" class="btn btn-login w-100" [disabled]="loginForm.invalid || isLoading">
           @if (isLoading) {
-            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
           }
           {{ isLoading ? 'Logging in...' : 'Login' }}
         </button>
 
         <div class="mt-4 text-center">
           <span class="text-muted">Don't have an account?</span>
-          <a routerLink="/pricing" class="ms-1 fw-bold text-decoration-none text-primary">Register</a>
+          <a routerLink="/subscription" class="ms-1 fw-bold text-decoration-none text-primary">Register</a>
         </div>
       </form>
 

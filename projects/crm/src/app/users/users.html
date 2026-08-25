@@ -28,6 +28,17 @@
     <ng-template appColumn="status" header="Status" let-row>
       <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold">Active</span>
     </ng-template>
+
+    <ng-template appColumn="actions" header="" let-row>
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-sm btn-light text-primary" data-bs-toggle="offcanvas" data-bs-target="#userFormOffcanvas" (click)="editUser(row)" title="Edit User">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-light text-danger" (click)="deleteUser(row.id)" title="Delete User">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </ng-template>
   </app-data-table>
 </div>
 
@@ -35,7 +46,7 @@
 <div class="offcanvas offcanvas-end" tabindex="-1" id="userFormOffcanvas" style="width: 500px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
   
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
-    <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">Create New User</h5>
+    <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ editingUserId() ? 'Edit User' : 'Create New User' }}</h5>
     <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
 
@@ -53,19 +64,36 @@
       </div>
 
       <div class="col-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Password <span class="text-danger">*</span></label>
-        <input type="password" formControlName="password" class="form-control bg-light border-0 py-2">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Phone <span class="text-danger">*</span></label>
+        <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2" placeholder="e.g. 9876543210">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Password @if (!editingUserId()) {<span class="text-danger">*</span>}</label>
+        <input type="password" formControlName="password" class="form-control bg-light border-0 py-2" [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
+      </div>
+
+      <div class="col-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Confirm Password @if (!editingUserId()) {<span class="text-danger">*</span>}</label>
+        <input type="password" formControlName="password_confirmation" class="form-control bg-light border-0 py-2" [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
+        <div class="text-danger small mt-1" *ngIf="userForm.errors?.['mismatch'] && userForm.get('password_confirmation')?.touched">
+          Passwords do not match.
+        </div>
       </div>
 
       <div class="col-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Role <span class="text-danger">*</span></label>
         <select formControlName="role_id" class="form-select bg-light border-0 py-2 text-slate-600">
           <option [ngValue]="null">Select Role...</option>
-          <option [ngValue]="1">Super Admin</option>
-          <option [ngValue]="2">Manager</option>
-          <option [ngValue]="3">Sales Executive</option>
-          <option [ngValue]="4">Operation Team</option>
-          <option [ngValue]="5">Accounts</option>
+          <option *ngFor="let role of rolesResource.value()?.data" [ngValue]="role.id">{{ role.name }}</option>
+        </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Status <span class="text-danger">*</span></label>
+        <select formControlName="status" class="form-select bg-light border-0 py-2 text-slate-600">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
 

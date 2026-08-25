@@ -5,16 +5,20 @@ import { catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 
-export type BillingCycle = 'monthly' | 'quarterly' | 'half_yearly' | 'yearly';
+export type BillingCycle = 'monthly' | 'yearly';
 
 export interface SubscriptionPlan {
-  id: string;
+  id: number;
   name: string;
-  priceMonthly: number;
-  priceQuarterly: number;
-  priceHalfYearly: number;
-  priceYearly: number;
-  features: string[];
+  slug: string;
+  monthly_price: string;
+  yearly_price: string;
+  base_user_seats: number;
+  addon_seat_price: string;
+  modules: string[];
+  database_type: string;
+  status: string;
+  is_current_plan?: boolean;
 }
 
 export interface CompanyDetails {

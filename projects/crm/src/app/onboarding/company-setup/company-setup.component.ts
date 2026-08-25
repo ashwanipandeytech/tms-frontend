@@ -87,7 +87,7 @@ import { OnboardingService } from '../onboarding.service';
                     </div>
                   </div>
                   
-                  <div class="row g-3 mb-4 d-none">
+                  <div class="row g-3 mb-4">
                     <div class="col-md-6">
                       <label class="form-label fw-semibold">Email *</label>
                       <input type="email" class="form-control" formControlName="admin_email" placeholder="admin@acme.com" [class.is-invalid]="isInvalid('admin_email')">
@@ -101,8 +101,8 @@ import { OnboardingService } from '../onboarding.service';
                   </div>
 
                   <!-- CRM Preferences -->
-                  <div class="d-none">
-                    <h5 class="fw-bold mb-3 mt-4">CRM Preferences</h5>
+                  <div class="mt-4 d-none">
+                    <h5 class="fw-bold mb-3">CRM Preferences</h5>
                     <div class="mb-4">
                       <label class="form-label fw-semibold">Number of CRM Users *</label>
                       <div class="d-flex align-items-center gap-3">
@@ -123,7 +123,7 @@ import { OnboardingService } from '../onboarding.service';
                   <hr class="my-4">
 
                   <div class="d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-light fw-semibold" routerLink="/pricing">Back</button>
+                    <button type="button" class="btn btn-light fw-semibold" routerLink="/subscription">Back</button>
                     <button type="submit" class="btn btn-primary fw-semibold px-4 py-2 d-flex align-items-center gap-2" [disabled]="loading || companyForm.invalid">
                       <span *ngIf="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                       Create My CRM Workspace
@@ -197,7 +197,7 @@ export class CompanySetupComponent implements OnInit {
 
   ngOnInit() {
     if (!this.onboardingService.selectedPlan()) {
-      this.router.navigate(['/pricing']);
+      this.router.navigate(['/subscription']);
       return;
     }
 
@@ -207,8 +207,8 @@ export class CompanySetupComponent implements OnInit {
       admin_name: ['', Validators.required],
       country_code: ['+91', Validators.required],
       admin_phone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      admin_email: [''],
-      initial_password: [''],
+      admin_email: ['', [Validators.required, Validators.email]],
+      initial_password: ['', [Validators.required, Validators.minLength(8)]],
       addon_user_seats: [1, [Validators.required, Validators.min(1)]]
     });
   }
@@ -226,11 +226,9 @@ export class CompanySetupComponent implements OnInit {
     const plan = this.onboardingService.selectedPlan();
     if (!plan) return 0;
     switch(this.onboardingService.billingCycle()) {
-      case 'monthly': return plan.priceMonthly;
-      case 'quarterly': return plan.priceQuarterly;
-      case 'half_yearly': return plan.priceHalfYearly;
-      case 'yearly': return plan.priceYearly;
-      default: return plan.priceMonthly;
+      case 'monthly': return parseFloat(plan.monthly_price);
+      case 'yearly': return parseFloat(plan.yearly_price) / 12;
+      default: return parseFloat(plan.monthly_price);
     }
   }
 
@@ -241,8 +239,6 @@ export class CompanySetupComponent implements OnInit {
   getMultiplier(): number {
     switch(this.onboardingService.billingCycle()) {
       case 'monthly': return 1;
-      case 'quarterly': return 3;
-      case 'half_yearly': return 6;
       case 'yearly': return 12;
       default: return 1;
     }
