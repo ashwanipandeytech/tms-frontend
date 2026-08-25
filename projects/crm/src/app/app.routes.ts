@@ -28,8 +28,16 @@ import { CabVendorsComponent } from './cab-vendors/cab-vendors';
 import { UsersComponent } from './users/users';
 import { RolesComponent } from './roles/roles';
 
+import { PricingComponent } from './pricing/pricing.component';
+import { CompanySetupComponent } from './onboarding/company-setup/company-setup.component';
+import { SuccessComponent } from './onboarding/success/success.component';
+
 export const routes: Routes = [
+  { path: '', redirectTo: 'pricing', pathMatch: 'full' },
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
+  { path: 'pricing', component: PricingComponent },
+  { path: 'onboarding/company', component: CompanySetupComponent },
+  { path: 'onboarding/success', component: SuccessComponent },
   {
     path: '',
     component: Layout,
