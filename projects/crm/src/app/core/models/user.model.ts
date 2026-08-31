@@ -7,6 +7,8 @@ export interface Role {
 export interface User {
   id: number;
   company_id: number | null;
+  company_name?: string;
+  company?: any;
   name: string;
   email: string;
   phone: string;
