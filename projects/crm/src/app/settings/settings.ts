@@ -1,8 +1,8 @@
 import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-import { ApiResponse } from '../models/api-response.model';
+import { environment } from '../../environments/environment';
+import { ApiResponse } from '../core/models/api-response.model';
 
 @Component({
   selector: 'app-settings',
