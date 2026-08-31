@@ -24,8 +24,7 @@ export class LoginComponent implements OnInit {
   ) {
     this.loginForm = this.fb.group({
       email: ['travel@demohandler.in', [Validators.required, Validators.email]],
-      password: ['Admin@123', Validators.required],
-      role_type: ['Super Admin', Validators.required]
+      password: ['Admin@123', Validators.required]
     });
   }
 
@@ -33,30 +32,6 @@ export class LoginComponent implements OnInit {
     // If already logged in, redirect to dashboard
     if (this.authService.getToken()) {
       this.router.navigate(['/dashboard']);
-    }
-
-    this.loginForm.get('role_type')?.valueChanges.subscribe(role => {
-      this.updateCredentialsForRole(role);
-    });
-  }
-
-  updateCredentialsForRole(role: string) {
-    switch (role) {
-      case 'Super Admin':
-        this.loginForm.patchValue({ email: 'travel@demohandler.in', password: 'Admin@123' });
-        break;
-      case 'Manager':
-        this.loginForm.patchValue({ email: 'manager@demohandler.in', password: 'Manager@123' });
-        break;
-      case 'Sales Executive':
-        this.loginForm.patchValue({ email: 'sales@demohandler.in', password: 'Sales@123' });
-        break;
-      case 'Operation Team':
-        this.loginForm.patchValue({ email: 'ops@demohandler.in', password: 'Ops@123' });
-        break;
-      case 'Accounts':
-        this.loginForm.patchValue({ email: 'accounts@demohandler.in', password: 'Accounts@123' });
-        break;
     }
   }
 

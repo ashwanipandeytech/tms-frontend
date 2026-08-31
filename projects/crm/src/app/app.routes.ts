@@ -70,7 +70,9 @@ export const routes: Routes = [
       
       // Admin
       { path: 'users', component: UsersComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } },
-      { path: 'roles', component: RolesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } }
+      { path: 'admin/companies', loadComponent: () => import('./companies/companies').then(m => m.CompaniesComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
+      { path: 'roles', component: RolesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } },
+      { path: 'settings', loadComponent: () => import('./settings/settings').then(m => m.SettingsComponent), canActivate: [roleGuard], data: { roles: ['Super Admin', 'Manager'] } },
     ]
   },
   { path: '**', redirectTo: 'login' }

@@ -209,13 +209,18 @@
     </div>
   }
   <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('admin') || isSidebarCollapsed()">
+    @if (authService.hasRole('Super Admin')) {
+      <li class="nav-item"><a routerLink="/admin/companies" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-buildings me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+        <span>Companies</span>
+      }</a></li>
+    }
     <li class="nav-item"><a routerLink="/users" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
     <span>Staff</span>
   }</a></li>
   <li class="nav-item"><a routerLink="/roles" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-shield-lock me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
   <span>Roles</span>
 }</a></li>
-<li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-gear me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+<li class="nav-item"><a routerLink="/settings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-gear me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
 <span>Settings</span>
 }</a></li>
 </ul>
@@ -298,7 +303,7 @@
           <img [src]="currentUser()?.avatar || 'https://ui-avatars.com/api/?name=' + (currentUser()?.name || 'User') + '&background=e0e7ff&color=4f46e5'" alt="User" class="rounded-circle" width="36" height="36">
           <div class="d-none d-md-block pe-2">
             <div class="fw-medium text-slate-800 lh-1 mb-1" style="font-size: 0.9rem;">{{ currentUser()?.name || 'Loading...' }}</div>
-            <div class="text-muted lh-1" style="font-size: 0.75rem;">{{ currentUser()?.role?.name || 'Staff' }}</div>
+            <div class="text-muted lh-1" style="font-size: 0.75rem;">{{ currentUser()?.role?.name || 'Staff' }} @if(currentUser()?.company_name) { • {{ currentUser()?.company_name }} }</div>
           </div>
           <i class="bi bi-chevron-down text-muted me-1" style="font-size: 0.8rem;"></i>
         </div>
@@ -310,7 +315,7 @@
             </a>
           </li>
           <li>
-            <a class="dropdown-item d-flex align-items-center gap-2 rounded-2 py-2" href="javascript:void(0)">
+            <a routerLink="/settings" class="dropdown-item d-flex align-items-center gap-2 rounded-2 py-2">
               <i class="bi bi-gear text-secondary"></i> Settings
             </a>
           </li>
