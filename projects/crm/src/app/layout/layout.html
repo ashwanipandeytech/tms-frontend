@@ -48,37 +48,37 @@
             </div>
           }
           <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('sales') || isSidebarCollapsed()">
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+            @if (authService.hasPermission('leads.view')) {
               <li class="nav-item"><a routerLink="/leads" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-people me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Leads</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+            @if (authService.hasPermission('followups.view')) {
               <li class="nav-item"><a routerLink="/follow-ups" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-bell me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Follow-ups</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager'])) {
+            @if (authService.hasPermission('packages.view')) {
               <li class="nav-item"><a routerLink="/coupons" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-ticket-perforated me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Coupons</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive'])) {
+            @if (authService.hasPermission('quotations.view')) {
               <li class="nav-item"><a routerLink="/quotations" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-file-earmark-text me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Quotations</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Operation Team'])) {
+            @if (authService.hasPermission('packages.view')) {
               <li class="nav-item"><a routerLink="/itineraries" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-map me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Itineraries</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Operation Team', 'Accounts'])) {
+            @if (authService.hasPermission('bookings.view')) {
               <li class="nav-item"><a routerLink="/bookings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-check-circle me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Bookings</span>
               }</a></li>
             }
-            @if (authService.hasAnyRole(['Manager', 'Sales Executive', 'Accounts'])) {
+            @if (authService.hasPermission('leads.view')) {
               <li class="nav-item"><a routerLink="/customers" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
                 <span>Customers</span>
               }</a></li>
@@ -87,7 +87,7 @@
 </li>
 
 <!-- INVENTORY SECTION -->
-@if (authService.hasRole('Super Admin') || authService.hasRole('Manager') || authService.hasRole('Sales Executive') || authService.hasRole('Operation Team')) {
+@if (authService.hasAnyPermission(['packages.view', 'hotels.view', 'resorts.view', 'villas.view'])) {
 <li class="nav-item mt-3">
   @if (!isSidebarCollapsed()) {
     <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
@@ -97,30 +97,42 @@
     </div>
   }
   <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('inventory') || isSidebarCollapsed()">
-    <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-box me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-    <span>Packages</span>
-  }</a></li>
-  <li class="nav-item"><a routerLink="/destinations" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-geo-alt me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-  <span>Destinations</span>
-}</a></li>
-<li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-tags me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Categories</span>
-}</a></li>
-<li class="nav-item"><a routerLink="/hotels" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-building me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Hotels</span>
-}</a></li>
-<li class="nav-item"><a routerLink="/resorts" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-tree me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Resorts</span>
-}</a></li>
-<li class="nav-item"><a routerLink="/villas" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-house me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Villas</span>
-}</a></li>
-</ul>
+    @if (authService.hasPermission('packages.view')) {
+      <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-box me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Packages</span>
+    }</a></li>
+    }
+    @if (authService.hasPermission('hotels.view')) {
+      <li class="nav-item"><a routerLink="/destinations" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-geo-alt me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Destinations</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('packages.view')) {
+      <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-tags me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Categories</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('hotels.view')) {
+      <li class="nav-item"><a routerLink="/hotels" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-building me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Hotels</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('resorts.view')) {
+      <li class="nav-item"><a routerLink="/resorts" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-tree me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Resorts</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('villas.view')) {
+      <li class="nav-item"><a routerLink="/villas" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-house me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Villas</span>
+      }</a></li>
+    }
+  </ul>
 </li>
 }
 
 <!-- CABS SECTION -->
-@if (authService.hasRole('Super Admin') || authService.hasRole('Manager') || authService.hasRole('Operation Team')) {
+@if (authService.hasPermission('cabs.view')) {
 <li class="nav-item mt-3">
   @if (!isSidebarCollapsed()) {
     <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
@@ -153,7 +165,7 @@
 }
 
 <!-- FINANCE SECTION -->
-@if (authService.hasRole('Super Admin') || authService.hasRole('Manager') || authService.hasRole('Accounts')) {
+@if (authService.hasAnyPermission(['payments.view', 'invoices.view', 'expenses.view'])) {
 <li class="nav-item mt-3">
   @if (!isSidebarCollapsed()) {
     <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
@@ -199,7 +211,7 @@
 </li>
 
 <!-- ADMIN SECTION -->
-@if (authService.hasRole('Super Admin') || authService.hasRole('Manager')) {
+@if (authService.hasAnyPermission(['staff.view', 'settings.view']) || authService.hasRole('Super Admin')) {
 <li class="nav-item mt-3">
   @if (!isSidebarCollapsed()) {
     <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
@@ -214,15 +226,21 @@
         <span>Companies</span>
       }</a></li>
     }
-    <li class="nav-item"><a routerLink="/users" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-    <span>Staff</span>
-  }</a></li>
-  <li class="nav-item"><a routerLink="/roles" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-shield-lock me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-  <span>Roles</span>
-}</a></li>
-<li class="nav-item"><a routerLink="/settings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-gear me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-<span>Settings</span>
-}</a></li>
+    @if (authService.hasPermission('staff.view')) {
+      <li class="nav-item"><a routerLink="/users" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-person-badge me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Staff</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('staff.view')) {
+      <li class="nav-item"><a routerLink="/roles" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-shield-lock me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Roles</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('settings.view')) {
+      <li class="nav-item"><a routerLink="/settings" routerLinkActive="active" class="nav-link d-flex align-items-center"><i class="bi bi-gear me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Settings</span>
+      }</a></li>
+    }
 </ul>
 </li>
 }

@@ -22,6 +22,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.data?.token) {
           localStorage.setItem('authToken', res.data.token);
+          if (res.data.user?.role?.permissions) {
+            localStorage.setItem('userPermissions', JSON.stringify(res.data.user.role.permissions));
+          }
         }
       })
     );
@@ -31,6 +34,8 @@ export class AuthService {
     return this.http.post<ApiResponse<null>>(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => {
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userPermissions');
+        this.currentUser.set(null);
       })
     );
   }
@@ -40,6 +45,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.data) {
           this.currentUser.set(res.data);
+          if (res.data.role?.permissions) {
+            localStorage.setItem('userPermissions', JSON.stringify(res.data.role.permissions));
+          }
         }
       })
     );
@@ -59,6 +67,33 @@ export class AuthService {
     if (user.role.name.toLowerCase() === 'super admin') return true;
     const userRole = user.role.name.toLowerCase();
     return roles.some(r => r.toLowerCase() === userRole);
+  }
+
+  getPermissions(): string[] {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('userPermissions');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+    const user = this.currentUser();
+    return user?.role?.permissions || [];
+  }
+
+  hasPermission(permission: string): boolean {
+    if (this.hasRole('Super Admin')) return true;
+    const perms = this.getPermissions();
+    return perms.includes(permission);
+  }
+
+  hasAnyPermission(permissions: string[]): boolean {
+    if (this.hasRole('Super Admin')) return true;
+    const perms = this.getPermissions();
+    return permissions.some(p => perms.includes(p));
   }
 
   getToken(): string | null {
