@@ -1,32 +1,32 @@
 import { Component, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { CompanyService, Company } from '../core/services/company.service';
+import { TenantService, Tenant } from '../core/services/tenant.service';
 import { DataTableComponent, DataTableColumnDirective } from '../shared/components/data-table/data-table.component';
 
 @Component({
-  selector: 'app-companies',
+  selector: 'app-tenants',
   standalone: true,
   imports: [CommonModule, DataTableComponent, DataTableColumnDirective, DatePipe],
-  templateUrl: './companies.html',
+  templateUrl: './tenants.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CompaniesComponent implements OnInit {
-  companies = signal<Company[]>([]);
+export class TenantsComponent implements OnInit {
+  tenants = signal<Tenant[]>([]);
   isLoading = signal<boolean>(true);
-  expandedCompanyId = signal<number | null>(null);
+  expandedTenantId = signal<number | null>(null);
 
-  constructor(private companyService: CompanyService) {}
+  constructor(private tenantService: TenantService) {}
 
   ngOnInit() {
-    this.fetchCompanies();
+    this.fetchTenants();
   }
 
-  fetchCompanies() {
+  fetchTenants() {
     this.isLoading.set(true);
-    this.companyService.getCompanies().subscribe({
+    this.tenantService.getTenants().subscribe({
       next: (res) => {
         if (res.success && res.data) {
-          this.companies.set(res.data);
+          this.tenants.set(res.data);
         }
         this.isLoading.set(false);
       },
@@ -34,11 +34,11 @@ export class CompaniesComponent implements OnInit {
     });
   }
 
-  toggleExpand(companyId: number) {
-    if (this.expandedCompanyId() === companyId) {
-      this.expandedCompanyId.set(null);
+  toggleExpand(tenantId: number) {
+    if (this.expandedTenantId() === tenantId) {
+      this.expandedTenantId.set(null);
     } else {
-      this.expandedCompanyId.set(companyId);
+      this.expandedTenantId.set(tenantId);
     }
   }
 }

@@ -14,6 +14,7 @@ export class AuthService {
   
   // Expose current user as a Signal
   public currentUser = signal<User | null>(null);
+  public activeTenantId = signal<number | null>(null);
 
   constructor(private http: HttpClient) {}
 
@@ -25,6 +26,11 @@ export class AuthService {
           if (res.data.user?.role?.permissions) {
             localStorage.setItem('userPermissions', JSON.stringify(res.data.user.role.permissions));
           }
+          
+          const storedTenant = localStorage.getItem('activeTenantId');
+          if (storedTenant) {
+            this.activeTenantId.set(parseInt(storedTenant, 10));
+          }
         }
       })
     );
@@ -35,7 +41,9 @@ export class AuthService {
       tap(() => {
         localStorage.removeItem('authToken');
         localStorage.removeItem('userPermissions');
+        localStorage.removeItem('activeTenantId');
         this.currentUser.set(null);
+        this.activeTenantId.set(null);
       })
     );
   }
@@ -47,6 +55,11 @@ export class AuthService {
           this.currentUser.set(res.data);
           if (res.data.role?.permissions) {
             localStorage.setItem('userPermissions', JSON.stringify(res.data.role.permissions));
+          }
+          
+          const storedTenant = localStorage.getItem('activeTenantId');
+          if (storedTenant) {
+            this.activeTenantId.set(parseInt(storedTenant, 10));
           }
         }
       })
@@ -101,5 +114,20 @@ export class AuthService {
       return localStorage.getItem('authToken');
     }
     return null;
+  }
+
+  setActiveTenant(tenantId: number) {
+    this.activeTenantId.set(tenantId);
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('activeTenantId', tenantId.toString());
+    }
+  }
+
+  getActiveTenant(): number | null {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('activeTenantId');
+      if (stored) return parseInt(stored, 10);
+    }
+    return this.activeTenantId();
   }
 }

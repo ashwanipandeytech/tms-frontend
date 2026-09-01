@@ -46,7 +46,11 @@ export class LoginComponent implements OnInit {
     this.authService.login(this.loginForm.value).subscribe({
       next: (res) => {
         if (res.success) {
-          this.router.navigate(['/dashboard']);
+          if (res.data?.user?.role?.name === 'Super Admin') {
+            this.router.navigate(['/select-tenant']);
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         } else {
           this.errorMessage = res.message || 'Login failed';
         }

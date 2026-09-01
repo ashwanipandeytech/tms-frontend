@@ -38,6 +38,7 @@ export const routes: Routes = [
   { path: 'subscription', component: PricingComponent },
   { path: 'onboarding/company', component: CompanySetupComponent },
   { path: 'onboarding/success', component: SuccessComponent },
+  { path: 'select-tenant', loadComponent: () => import('./select-tenant/select-tenant').then(m => m.SelectTenantComponent), canActivate: [authGuard] },
   {
     path: '',
     component: Layout,
@@ -71,7 +72,7 @@ export const routes: Routes = [
       
       // Admin
       { path: 'users', component: UsersComponent, canActivate: [permissionGuard], data: { permissions: ['staff.view'] } },
-      { path: 'admin/companies', loadComponent: () => import('./companies/companies').then(m => m.CompaniesComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
+      { path: 'admin/tenants', loadComponent: () => import('./tenants/tenants').then(m => m.TenantsComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
       { path: 'admin/reset', loadComponent: () => import('./reset/reset').then(m => m.ResetComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
       { path: 'roles', component: RolesComponent, canActivate: [permissionGuard], data: { permissions: ['staff.view'] } },
       { path: 'settings', loadComponent: () => import('./settings/settings').then(m => m.SettingsComponent), canActivate: [permissionGuard], data: { permissions: ['settings.view'] } },

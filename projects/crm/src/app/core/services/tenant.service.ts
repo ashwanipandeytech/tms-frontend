@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse } from '../models/api-response.model';
 
-export interface CompanyEmployee {
+export interface TenantEmployee {
   id: number;
   name: string;
   email: string;
@@ -12,7 +12,7 @@ export interface CompanyEmployee {
   role_name: string;
 }
 
-export interface CompanySubscription {
+export interface TenantSubscription {
   plan_name: string;
   status: string;
   starts_at: string;
@@ -21,27 +21,27 @@ export interface CompanySubscription {
   is_expiring_soon: boolean;
 }
 
-export interface Company {
+export interface Tenant {
   id: number;
   company_name: string;
   subdomain: string;
   status: string;
   created_at: string;
-  subscription: CompanySubscription;
+  subscription: TenantSubscription;
   total_employees: number;
   total_allowed_seats: number;
-  employees: CompanyEmployee[];
+  employees: TenantEmployee[];
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class CompanyService {
+export class TenantService {
   private apiUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 
-  getCompanies(page: number = 1, perPage: number = 15): Observable<ApiResponse<Company[]>> {
-    return this.http.get<ApiResponse<Company[]>>(`${this.apiUrl}/admin/companies?page=${page}&per_page=${perPage}`);
+  getTenants(page: number = 1, perPage: number = 15): Observable<ApiResponse<Tenant[]>> {
+    return this.http.get<ApiResponse<Tenant[]>>(`${this.apiUrl}/admin/tenants?page=${page}&per_page=${perPage}`);
   }
 }
