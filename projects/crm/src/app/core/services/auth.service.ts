@@ -15,6 +15,7 @@ export class AuthService {
   // Expose current user as a Signal
   public currentUser = signal<User | null>(null);
   public activeTenantId = signal<number | null>(null);
+  public activeTenantName = signal<string | null>(null);
 
   constructor(private http: HttpClient) {}
 
@@ -39,9 +40,7 @@ export class AuthService {
   logout(): Observable<ApiResponse<null>> {
     return this.http.post<ApiResponse<null>>(`${this.apiUrl}/logout`, {}).pipe(
       tap(() => {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userPermissions');
-        localStorage.removeItem('activeTenantId');
+        localStorage.clear();
         this.currentUser.set(null);
         this.activeTenantId.set(null);
       })
@@ -116,10 +115,16 @@ export class AuthService {
     return null;
   }
 
-  setActiveTenant(tenantId: number) {
+  setActiveTenant(tenantId: number, tenantName?: string) {
     this.activeTenantId.set(tenantId);
+    if (tenantName) {
+      this.activeTenantName.set(tenantName);
+    }
     if (typeof window !== 'undefined' && window.localStorage) {
       localStorage.setItem('activeTenantId', tenantId.toString());
+      if (tenantName) {
+        localStorage.setItem('activeTenantName', tenantName);
+      }
     }
   }
 
@@ -129,5 +134,13 @@ export class AuthService {
       if (stored) return parseInt(stored, 10);
     }
     return this.activeTenantId();
+  }
+
+  getActiveTenantName(): string | null {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const stored = localStorage.getItem('activeTenantName');
+      if (stored) return stored;
+    }
+    return this.activeTenantName();
   }
 }

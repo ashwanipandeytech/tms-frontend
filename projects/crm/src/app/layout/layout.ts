@@ -40,6 +40,22 @@ export class Layout implements OnInit {
     return this.expandedSections().has(section);
   }
 
+  get isSelectTenantRoute(): boolean {
+    return this.router.url === '/select-tenant';
+  }
+
+  get shouldShowTenantLinks(): boolean {
+    return !this.authService.hasRole('Super Admin') || !!this.authService.getActiveTenant();
+  }
+
+  get tenantName(): string | null {
+    if (this.authService.hasRole('Super Admin')) {
+      return this.authService.getActiveTenantName();
+    }
+    const user = this.authService.currentUser();
+    return user?.company_name || user?.company?.name || null;
+  }
+
   themes = [
     { id: 'blue', name: 'Blue', color: '#3b82f6' },
     { id: 'emerald', name: 'Emerald', color: '#10b981' },

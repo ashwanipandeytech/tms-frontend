@@ -32,6 +32,11 @@ export class LoginComponent implements OnInit {
     // If already logged in, redirect to dashboard
     if (this.authService.getToken()) {
       this.router.navigate(['/dashboard']);
+    } else {
+      // Ensure completely fresh state if arriving unauthenticated (e.g. expired token redirect)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.clear();
+      }
     }
   }
 

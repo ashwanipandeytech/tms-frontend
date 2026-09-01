@@ -23,7 +23,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     });
   }
 
-  if (tenantId) {
+  const isExcludedApi = req.url.includes('/admin/tenants') || req.url.includes('/roles') || req.url.includes('/permissions') || req.url.includes('/me');
+  
+  if (tenantId && !isExcludedApi) {
     clonedRequest = clonedRequest.clone({
       setHeaders: {
         'X-Tenant-ID': tenantId

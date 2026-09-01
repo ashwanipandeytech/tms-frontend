@@ -1,20 +1,12 @@
-<div class="min-vh-100 bg-light d-flex flex-column">
+<div class="d-flex flex-column">
   
   <!-- Header -->
-  <div class="bg-gradient-primary text-white py-5 shadow-sm mb-4">
-    <div class="container">
-      <div class="row align-items-center">
-        <div class="col-md-8">
-          <h2 class="fw-bold mb-2"><i class="bi bi-buildings me-2"></i> Select Active Workspace</h2>
-          <p class="text-white-50 mb-0 fs-5">Welcome back, Super Admin. Please choose a tenant company to manage.</p>
-        </div>
-        <div class="col-md-4 text-md-end mt-3 mt-md-0">
-          <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-4 py-2 border border-light border-opacity-25">
-            <i class="bi bi-shield-lock-fill text-warning me-2 fs-5"></i>
-            <span class="fw-medium text-white">Super Admin Mode</span>
-          </div>
-        </div>
-      </div>
+  <div class="text-white py-3 shadow mb-4" style="background-color: var(--theme-sidebar-bg, #0f172a);">
+    <div class="container position-relative d-flex justify-content-between align-items-center" style="z-index: 1;">
+      <h5 class="fw-medium mb-0 text-white opacity-75">Choose a tenant company to manage.</h5>
+      <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#resetTenantModal" (click)="openBulkResetModal()">
+        <i class="bi bi-trash-fill me-1"></i> Bulk Clear
+      </button>
     </div>
   </div>
 
@@ -29,49 +21,86 @@
       </div>
     } @else {
       @if (tenants().length === 0) {
-        <div class="text-center py-5">
-          <div class="mb-4">
+        <div class="text-center py-5 mt-5">
+          <div class="mb-4 d-inline-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style="width: 120px; height: 120px;">
             <i class="bi bi-building-x text-muted" style="font-size: 4rem;"></i>
           </div>
-          <h4 class="text-slate-700 fw-bold">No Tenants Found</h4>
-          <p class="text-muted">There are currently no tenant workspaces available in the system.</p>
+          <h3 class="text-dark fw-bold">No Tenants Found</h3>
+          <p class="text-muted fs-5">There are currently no tenant workspaces available in the system.</p>
         </div>
       } @else {
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
           @for (tenant of tenants(); track tenant.id) {
             <div class="col">
-              <div class="card h-100 shadow-sm rounded-4 tenant-card" (click)="selectTenant(tenant)">
-                <div class="card-body p-4 d-flex flex-column">
+              <div class="card h-100 rounded-4 tenant-card border-0" (click)="selectTenant(tenant)">
+                <div class="card-body p-4 d-flex flex-column position-relative overflow-hidden">
                   
-                  <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center text-primary" style="width: 48px; height: 48px;">
-                      <span class="fw-bold fs-5">{{ tenant.company_name.charAt(0).toUpperCase() }}</span>
-                    </div>
-                    
-                    @if (tenant.status === 'active') {
-                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2">
-                        <i class="bi bi-circle-fill small me-1" style="font-size: 0.5rem;"></i> Active
-                      </span>
-                    } @else {
-                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2">
-                        <i class="bi bi-circle-fill small me-1" style="font-size: 0.5rem;"></i> {{ tenant.status }}
-                      </span>
-                    }
+                  <!-- Decorative background shape -->
+                  <div class="position-absolute top-0 end-0 opacity-10 pt-3 pe-4" style="transform: rotate(15deg);">
+                    <i class="bi bi-airplane-fill fs-1 text-primary"></i>
                   </div>
                   
-                  <h5 class="card-title fw-bold text-slate-800 mb-1">{{ tenant.company_name }}</h5>
-                  <p class="text-muted small mb-4">
-                    <i class="bi bi-link-45deg me-1"></i>{{ tenant.subdomain }}.demohandler.in
-                  </p>
+                  <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                      <img [src]="'https://ui-avatars.com/api/?name=' + tenant.company_name + '&background=eff6ff&color=4f46e5&size=128&font-size=0.4&bold=true'" 
+                           class="rounded-3 shadow-sm border border-light" width="56" height="56" [alt]="tenant.company_name">
+                      <div>
+                        <h5 class="card-title fw-bold text-dark mb-0" style="font-size: 1.15rem;">{{ tenant.company_name }}</h5>
+                        <p class="text-muted small mb-0 mt-1 d-flex align-items-center gap-1">
+                          <i class="bi bi-globe"></i> {{ tenant.subdomain }}.demohandler.in
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="d-flex flex-wrap gap-2 mb-4">
+                    @if (tenant.status === 'active') {
+                      <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-3 py-2 fw-medium">
+                        <i class="bi bi-check-circle-fill small me-1"></i> Active
+                      </span>
+                    } @else {
+                      <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 rounded-pill px-3 py-2 fw-medium">
+                        <i class="bi bi-circle-fill small me-1"></i> {{ tenant.status | titlecase }}
+                      </span>
+                    }
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-2 fw-medium">
+                      <i class="bi bi-box-seam me-1"></i> {{ tenant.subscription?.plan_name || 'No Plan' }}
+                    </span>
+                  </div>
+                  
+                  @if (tenant.subscription) {
+                    <div class="bg-slate-50 border border-light rounded-3 p-3 mb-4">
+                      <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small text-muted fw-medium"><i class="bi bi-calendar-check me-1"></i> Valid until</span>
+                        <span class="small fw-bold text-dark">{{ tenant.subscription.ends_at | date:'MMM d, y' }}</span>
+                      </div>
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="small text-muted fw-medium"><i class="bi bi-hourglass-split me-1"></i> Remaining</span>
+                        <span class="badge rounded-pill px-2 py-1" 
+                              [ngClass]="tenant.subscription.is_expiring_soon ? 'bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25' : 'bg-primary-subtle text-primary border border-primary border-opacity-10'">
+                          {{ tenant.subscription.days_remaining }} days left
+                        </span>
+                      </div>
+                    </div>
+                  }
                   
                   <div class="mt-auto pt-3 border-top border-light d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center text-slate-600">
-                      <i class="bi bi-people-fill text-primary me-2"></i>
-                      <span class="fw-medium">{{ tenant.total_employees }}</span>
+                    <div class="d-flex align-items-center text-secondary">
+                      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                        <i class="bi bi-people-fill small"></i>
+                      </div>
+                      <span class="fw-bold text-dark">{{ tenant.total_employees }}</span>
                       <span class="text-muted ms-1 small">/ {{ tenant.total_allowed_seats }} Seats</span>
                     </div>
-                    <div class="text-muted small">
-                      <i class="bi bi-box me-1"></i> {{ tenant.subscription?.plan_name || 'N/A' }}
+                    
+                    <div class="d-flex align-items-center gap-3">
+                      <button class="btn btn-sm btn-outline-danger border-0 px-2 fw-medium shadow-none d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#resetTenantModal" (click)="openResetModal(tenant, $event)">
+                        <i class="bi bi-trash"></i> Reset
+                      </button>
+                      
+                      <div class="text-primary fw-bold small d-flex align-items-center enter-workspace-btn" style="letter-spacing: 0.3px;">
+                        Enter <i class="bi bi-arrow-right ms-1 transition-transform fs-5"></i>
+                      </div>
                     </div>
                   </div>
                   
@@ -82,5 +111,51 @@
         </div>
       }
     }
+  </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetTenantModal" tabindex="-1" aria-labelledby="resetTenantModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-danger bg-opacity-10 d-flex align-items-center justify-content-between">
+        <h5 class="modal-title fw-bold text-danger mb-0 d-flex align-items-center gap-2" id="resetTenantModalLabel">
+          <i class="bi bi-exclamation-triangle-fill"></i> Danger Zone
+        </h5>
+        <button type="button" class="btn-close btn-close-white shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle mb-3" style="width: 80px; height: 80px;">
+            <i class="bi bi-shield-x" style="font-size: 2.5rem;"></i>
+          </div>
+          <h4 class="text-dark fw-bold mb-2">Are you absolutely sure?</h4>
+          @if (isBulkResetMode()) {
+            <p class="text-muted mb-0">This action will <strong>permanently delete ALL data</strong> across ALL tenant companies (leads, bookings, settings, etc). This cannot be undone.</p>
+          } @else {
+            <p class="text-muted mb-0">This action will <strong>permanently delete all data</strong> for <span class="fw-bold text-dark">{{ tenantToReset()?.company_name }}</span> (leads, bookings, settings, etc). This cannot be undone.</p>
+          }
+        </div>
+        
+        <div class="bg-slate-50 border border-light rounded-3 p-3">
+          <ul class="mb-0 small text-muted list-unstyled">
+            <li class="mb-2"><i class="bi bi-check2-circle text-danger me-2"></i> All company data will be erased.</li>
+            <li class="mb-2"><i class="bi bi-check2-circle text-danger me-2"></i> All staff accounts will be removed.</li>
+            <li><i class="bi bi-check2-circle text-success me-2"></i> Your Super Admin account is safe.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-secondary px-4 fw-medium" data-bs-dismiss="modal" [disabled]="isResetting()">Cancel</button>
+        <button type="button" class="btn btn-danger px-4 fw-bold" (click)="confirmReset()" [disabled]="isResetting()">
+          @if (isResetting()) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Clearing Data...
+          } @else {
+            Yes, Wipe Data
+          }
+        </button>
+      </div>
+    </div>
   </div>
 </div>

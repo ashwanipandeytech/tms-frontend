@@ -38,13 +38,13 @@ export const routes: Routes = [
   { path: 'subscription', component: PricingComponent },
   { path: 'onboarding/company', component: CompanySetupComponent },
   { path: 'onboarding/success', component: SuccessComponent },
-  { path: 'select-tenant', loadComponent: () => import('./select-tenant/select-tenant').then(m => m.SelectTenantComponent), canActivate: [authGuard] },
   {
     path: '',
     component: Layout,
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: 'select-tenant', loadComponent: () => import('./select-tenant/select-tenant').then(m => m.SelectTenantComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
       { path: 'dashboard', component: Dashboard },
       { path: 'leads', component: LeadsComponent, canActivate: [permissionGuard], data: { permissions: ['leads.view'] } },
       { path: 'follow-ups', component: FollowUpsComponent, canActivate: [permissionGuard], data: { permissions: ['followups.view'] } },
@@ -74,7 +74,7 @@ export const routes: Routes = [
       { path: 'users', component: UsersComponent, canActivate: [permissionGuard], data: { permissions: ['staff.view'] } },
       { path: 'admin/tenants', loadComponent: () => import('./tenants/tenants').then(m => m.TenantsComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
       { path: 'admin/reset', loadComponent: () => import('./reset/reset').then(m => m.ResetComponent), canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
-      { path: 'roles', component: RolesComponent, canActivate: [permissionGuard], data: { permissions: ['staff.view'] } },
+      { path: 'roles', component: RolesComponent, canActivate: [roleGuard], data: { roles: ['Super Admin'] } },
       { path: 'settings', loadComponent: () => import('./settings/settings').then(m => m.SettingsComponent), canActivate: [permissionGuard], data: { permissions: ['settings.view'] } },
     ]
   },
