@@ -194,6 +194,7 @@
 }
 
 <!-- AUTOMATION SECTION -->
+@if (authService.hasAnyPermission(['whatsapp.view', 'email.view'])) {
 <li class="nav-item mt-3">
   @if (!isSidebarCollapsed()) {
     <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
@@ -203,14 +204,19 @@
     </div>
   }
   <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('automation') || isSidebarCollapsed()">
-    <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-whatsapp me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-    <span>WhatsApp</span>
-  }</a></li>
-  <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-envelope me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-  <span>Email</span>
-}</a></li>
-</ul>
+    @if (authService.hasPermission('whatsapp.view')) {
+      <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-whatsapp me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>WhatsApp</span>
+      }</a></li>
+    }
+    @if (authService.hasPermission('email.view')) {
+      <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-envelope me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+      <span>Email</span>
+      }</a></li>
+    }
+  </ul>
 </li>
+}
 
 } <!-- End of @if (shouldShowTenantLinks) -->
 <!-- ADMIN SECTION -->
@@ -255,28 +261,34 @@
 
 <!-- INSIGHTS SECTION -->
 @if (shouldShowTenantLinks) {
-<li class="nav-item mt-3 mb-4">
-  @if (!isSidebarCollapsed()) {
-    <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
-      (click)="toggleSection('insights')">
-      <small class="fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Insights</small>
-      <i class="bi" [class.bi-chevron-down]="isExpanded('insights')" [class.bi-chevron-right]="!isExpanded('insights')" style="font-size: 0.75rem;"></i>
-    </div>
+  @if (authService.hasAnyPermission(['reports.view', 'business_profile.view'])) {
+  <li class="nav-item mt-3 mb-4">
+    @if (!isSidebarCollapsed()) {
+      <div class="section-title d-flex align-items-center justify-content-between px-2 py-2 text-white-50 cursor-pointer"
+        (click)="toggleSection('insights')">
+        <small class="fw-bold text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">Insights</small>
+        <i class="bi" [class.bi-chevron-down]="isExpanded('insights')" [class.bi-chevron-right]="!isExpanded('insights')" style="font-size: 0.75rem;"></i>
+      </div>
+    }
+    <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('insights') || isSidebarCollapsed()">
+      @if (authService.hasPermission('reports.view')) {
+        <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-graph-up me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+        <span>Reports</span>
+        }</a></li>
+      }
+      @if (authService.hasPermission('business_profile.view')) {
+        <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-building me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+        <span>Business Profile</span>
+        }</a></li>
+      }
+    </ul>
+  </li>
   }
-  <ul class="nav flex-column gap-1 collapse-menu" [class.show]="isExpanded('insights') || isSidebarCollapsed()">
-    <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-graph-up me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-    <span>Reports</span>
-  }</a></li>
-  <li class="nav-item"><a href="javascript:void(0)" class="nav-link d-flex align-items-center"><i class="bi bi-building me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
-  <span>Business Profile</span>
-}</a></li>
-</ul>
-</li>
 }
 
 <li class="nav-item mt-3 mb-4">
   <ul class="nav flex-column gap-1">
-    <li class="nav-item"><a (click)="authService.logout().subscribe()" style="cursor: pointer;" class="nav-link d-flex align-items-center text-danger"><i class="bi bi-box-arrow-right me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
+    <li class="nav-item"><a (click)="logout()" style="cursor: pointer;" class="nav-link d-flex align-items-center text-danger"><i class="bi bi-box-arrow-right me-3 fs-5"></i> @if (!isSidebarCollapsed()) {
     <span>Logout</span>
     }</a></li>
   </ul>
