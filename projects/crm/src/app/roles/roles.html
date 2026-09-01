@@ -29,6 +29,9 @@
         <button class="btn btn-sm btn-light text-primary" data-bs-toggle="offcanvas" data-bs-target="#roleFormOffcanvas" (click)="editRole(row)" title="Edit Role">
           <i class="bi bi-pencil"></i>
         </button>
+        <button class="btn btn-sm btn-light text-danger" data-bs-toggle="modal" data-bs-target="#deleteRoleModal" (click)="confirmDelete(row)" title="Delete Role">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
     </ng-template>
   </app-data-table>
@@ -96,5 +99,32 @@
       <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
       <i class="bi bi-check2" *ngIf="!isSaving()"></i> {{ isSaving() ? 'Saving...' : 'Save Role' }}
     </button>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteRoleModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+        <h5 class="modal-title fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-triangle text-danger"></i> Delete Role
+        </h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body px-4 py-4 text-center">
+        <div class="mb-3">
+          <i class="bi bi-trash text-danger" style="font-size: 3rem;"></i>
+        </div>
+        <h5 class="fw-bold text-slate-800 mb-2">Are you sure?</h5>
+        <p class="text-slate-600 mb-0">Do you really want to delete the role <span class="fw-bold text-dark">"{{ roleToDelete()?.name }}"</span>? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer bg-light border-top p-3 d-flex justify-content-center gap-3">
+        <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger px-4 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="executeDelete()" data-bs-dismiss="modal">
+          <i class="bi bi-trash"></i> Delete Role
+        </button>
+      </div>
+    </div>
   </div>
 </div>

@@ -86,18 +86,19 @@ export class RolesComponent implements OnInit {
       role.permissions.forEach(p => {
         // Handle if API returns object {id: 1} or just number 1
         const permId = typeof p === 'object' ? p.id : p;
-        if (permId) newPerms.add(permId);
+        if (permId) newPerms.add(Number(permId));
       });
     }
     this.selectedPermissions.set(newPerms);
   }
 
-  togglePermission(permId: number) {
+  togglePermission(permId: number | string) {
+    const pId = Number(permId);
     const current = new Set(this.selectedPermissions());
-    if (current.has(permId)) {
-      current.delete(permId);
+    if (current.has(pId)) {
+      current.delete(pId);
     } else {
-      current.add(permId);
+      current.add(pId);
     }
     this.selectedPermissions.set(current);
   }
@@ -137,6 +138,38 @@ export class RolesComponent implements OnInit {
       error: (err) => {
         this.toastr.error(err.error?.message || `Error ${this.editingRoleId() ? 'updating' : 'creating'} role`);
         this.isSaving.set(false);
+      }
+    });
+  }
+
+  deleteRole(role: Role) {
+    // This method is kept for backwards compatibility but we now use confirmDelete/executeDelete for the modal
+    this.confirmDelete(role);
+  }
+
+  roleToDelete = signal<Role | null>(null);
+
+  confirmDelete(role: Role) {
+    this.roleToDelete.set(role);
+  }
+
+  executeDelete() {
+    const role = this.roleToDelete();
+    if (!role) return;
+
+    this.roleService.deleteRole(role.id!).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toastr.success('Role deleted successfully');
+          this.fetchRoles();
+        } else {
+          this.toastr.error(res.message || 'Failed to delete role');
+        }
+        this.roleToDelete.set(null);
+      },
+      error: (err) => {
+        this.toastr.error(err.error?.message || 'Error deleting role');
+        this.roleToDelete.set(null);
       }
     });
   }

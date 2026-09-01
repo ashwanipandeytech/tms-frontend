@@ -45,4 +45,8 @@ export class RoleService {
   updateRole(id: number | string, data: Role): Observable<ApiResponse<Role>> {
     return this.http.put<ApiResponse<Role>>(`${this.apiUrl}/roles/${id}`, data);
   }
+
+  deleteRole(id: number | string): Observable<ApiResponse<null>> {
+    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/roles/${id}`);
+  }
 }
