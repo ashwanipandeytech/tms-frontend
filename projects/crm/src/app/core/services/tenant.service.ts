@@ -10,6 +10,7 @@ export interface TenantEmployee {
   email: string;
   status: string;
   role_name: string;
+  demo_password?: string;
 }
 
 export interface TenantSubscription {
