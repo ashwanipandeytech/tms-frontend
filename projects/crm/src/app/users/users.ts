@@ -1,4 +1,4 @@
-import { Component, signal, ChangeDetectionStrategy, resource } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy, resource, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { DataTableComponent, DataTableColumnDirective } from '../shared/components/data-table/data-table.component';
@@ -14,19 +14,18 @@ import { firstValueFrom } from 'rxjs';
   templateUrl: './users.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class UsersComponent {
-  view = signal<'list' | 'add' | 'edit'>('list');
+export class UsersComponent implements OnInit {
   userForm: FormGroup;
   isSaving = signal(false);
   editingUserId = signal<number | null>(null);
-  
-  usersResource = resource({
-    loader: () => firstValueFrom(this.userService.getUsers())
-  });
 
-  rolesResource = resource({
-    loader: () => firstValueFrom(this.roleService.getRoles())
-  });
+  users = signal<any[]>([]);
+  usersLoading = signal<boolean>(true);
+
+  roles = signal<Role[]>([]);
+  rolesLoading = signal<boolean>(true);
+
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private fb: FormBuilder,
@@ -45,6 +44,47 @@ export class UsersComponent {
     }, { validators: this.passwordMatchValidator });
   }
 
+  ngOnInit() {
+    this.fetchRoles();
+    this.fetchUsers();
+  }
+
+  fetchUsers() {
+    this.usersLoading.set(true);
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        let fetched: any[] = [];
+        if (Array.isArray(res)) fetched = res;
+        else if (res && res.data) fetched = res.data;
+        this.users.set(fetched);
+        this.usersLoading.set(false);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.usersLoading.set(false);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  fetchRoles() {
+    this.rolesLoading.set(true);
+    this.roleService.getRoles().subscribe({
+      next: (res: any) => {
+        let fetched: Role[] = [];
+        if (Array.isArray(res)) fetched = res;
+        else if (res && res.data) fetched = res.data;
+        this.roles.set(fetched);
+        this.rolesLoading.set(false);
+        this.cdr.detectChanges(); // Force template update
+      },
+      error: () => {
+        this.rolesLoading.set(false);
+        this.cdr.detectChanges(); // Force template update
+      }
+    });
+  }
+
   passwordMatchValidator(g: AbstractControl): ValidationErrors | null {
     const password = g.get('password')?.value;
     const confirmation = g.get('password_confirmation')?.value;
@@ -55,32 +95,31 @@ export class UsersComponent {
   }
 
   showAdd() {
-    this.view.set('add');
     this.editingUserId.set(null);
     this.userForm.reset({ status: 'active' });
     this.userForm.get('password')?.setValidators([Validators.required]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.userForm.get('password_confirmation')?.setValidators([Validators.required]);
     this.userForm.get('password_confirmation')?.updateValueAndValidity();
+    this.cdr.detectChanges();
   }
 
   editUser(user: any) {
-    this.view.set('edit');
     this.editingUserId.set(user.id);
     this.userForm.patchValue({
       name: user.name,
       email: user.email,
       phone: user.phone || '',
-      password: '', // Leave blank for editing unless they want to change it
+      password: '',
       password_confirmation: '',
       role_id: user.role?.id || null,
       status: user.status || 'active'
     });
-    // Password is not required when editing
     this.userForm.get('password')?.clearValidators();
     this.userForm.get('password')?.updateValueAndValidity();
     this.userForm.get('password_confirmation')?.clearValidators();
     this.userForm.get('password_confirmation')?.updateValueAndValidity();
+    this.cdr.detectChanges();
   }
 
   deleteUser(id: number) {
@@ -89,7 +128,7 @@ export class UsersComponent {
         next: (res) => {
           if (res.success) {
             this.toastr.success('User deleted successfully');
-            this.usersResource.reload();
+            this.fetchUsers();
           } else {
             this.toastr.error(res.message || 'Failed to delete user');
           }
@@ -106,17 +145,16 @@ export class UsersComponent {
       this.userForm.markAllAsTouched();
       return;
     }
-    
+
     this.isSaving.set(true);
     const data = { ...this.userForm.value };
-    
-    // Remove empty password when updating
+
     if (this.editingUserId() && !data.password) {
       delete data.password;
       delete data.password_confirmation;
     }
-    
-    const request = this.editingUserId() 
+
+    const request = this.editingUserId()
       ? this.userService.updateUser(this.editingUserId()!, data)
       : this.userService.createUser(data);
 
@@ -125,8 +163,7 @@ export class UsersComponent {
         if (res.success) {
           this.toastr.success(`User ${this.editingUserId() ? 'updated' : 'created'} successfully`);
           this.userForm.reset();
-          this.usersResource.reload();
-          // The offcanvas auto-closes due to data-bs-dismiss attribute
+          this.fetchUsers();
         } else {
           this.toastr.error(res.message || `Failed to ${this.editingUserId() ? 'update' : 'create'} user`);
         }

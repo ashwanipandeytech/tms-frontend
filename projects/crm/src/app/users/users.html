@@ -1,28 +1,32 @@
 <div class="container-fluid p-0">
-  
+
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">Staff & Users</h3>
       <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage employee access and assign roles.</p>
     </div>
-    
+
     <div class="d-flex align-items-center gap-3">
-      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#userFormOffcanvas" (click)="showAdd()">
+      <button
+        class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift"
+        type="button" data-bs-toggle="offcanvas" data-bs-target="#userFormOffcanvas" (click)="showAdd()">
         <i class="bi bi-person-plus-fill"></i> New User
       </button>
     </div>
   </div>
 
-  <app-data-table [dataList]="usersResource.value()?.data || []" [pagination]="true">
+  <app-data-table [dataList]="users()" [pagination]="true">
     <ng-template appColumn="name" header="Name & Contact" let-row>
       <div class="d-flex flex-column">
         <span class="text-slate-800 fw-bold">{{row.name}}</span>
-        <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-envelope me-1 text-slate-400"></i>{{row.email}}</span>
+        <span class="text-slate-500" style="font-size: 0.85rem;"><i
+            class="bi bi-envelope me-1 text-slate-400"></i>{{row.email}}</span>
       </div>
     </ng-template>
-    
+
     <ng-template appColumn="role" header="Role" let-row>
-      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-medium"><i class="bi bi-shield-lock me-1"></i> {{row.role?.name}}</span>
+      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-medium"><i
+          class="bi bi-shield-lock me-1"></i> {{row.role?.name}}</span>
     </ng-template>
 
     <ng-template appColumn="status" header="Status" let-row>
@@ -31,7 +35,8 @@
 
     <ng-template appColumn="actions" header="" let-row>
       <div class="d-flex justify-content-end gap-2">
-        <button class="btn btn-sm btn-light text-primary" data-bs-toggle="offcanvas" data-bs-target="#userFormOffcanvas" (click)="editUser(row)" title="Edit User">
+        <button class="btn btn-sm btn-light text-primary" data-bs-toggle="offcanvas" data-bs-target="#userFormOffcanvas"
+          (click)="editUser(row)" title="Edit User">
           <i class="bi bi-pencil"></i>
         </button>
         <button class="btn btn-sm btn-light text-danger" (click)="deleteUser(row.id)" title="Delete User">
@@ -43,18 +48,22 @@
 </div>
 
 <!-- Add/Edit User Offcanvas -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="userFormOffcanvas" style="width: 500px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
-  
+<div class="offcanvas offcanvas-end" tabindex="-1" id="userFormOffcanvas"
+  style="width: 500px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
+
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
-    <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ editingUserId() ? 'Edit User' : 'Create New User' }}</h5>
-    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ editingUserId() ? 'Edit User' : 'Create New User' }}
+    </h5>
+    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas"
+      aria-label="Close"></button>
   </div>
 
   <div class="offcanvas-body p-4 bg-white" style="overflow-y: auto;">
     <form class="row g-4" [formGroup]="userForm">
-      
+
       <div class="col-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Full Name <span class="text-danger">*</span></label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Full Name <span
+            class="text-danger">*</span></label>
         <input type="text" formControlName="name" class="form-control bg-light border-0 py-2">
       </div>
 
@@ -65,27 +74,34 @@
 
       <div class="col-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Phone <span class="text-danger">*</span></label>
-        <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2" placeholder="e.g. 9876543210">
+        <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2"
+          placeholder="e.g. 9876543210">
       </div>
 
       <div class="col-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Password @if (!editingUserId()) {<span class="text-danger">*</span>}</label>
-        <input type="password" formControlName="password" class="form-control bg-light border-0 py-2" [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Password @if (!editingUserId()) {<span
+            class="text-danger">*</span>}</label>
+        <input type="password" formControlName="password" class="form-control bg-light border-0 py-2"
+          [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
       </div>
 
       <div class="col-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Confirm Password @if (!editingUserId()) {<span class="text-danger">*</span>}</label>
-        <input type="password" formControlName="password_confirmation" class="form-control bg-light border-0 py-2" [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
-        <div class="text-danger small mt-1" *ngIf="userForm.errors?.['mismatch'] && userForm.get('password_confirmation')?.touched">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Confirm Password @if (!editingUserId()) {<span
+            class="text-danger">*</span>}</label>
+        <input type="password" formControlName="password_confirmation" class="form-control bg-light border-0 py-2"
+          [placeholder]="editingUserId() ? 'Leave blank to keep current' : ''">
+        <div class="text-danger small mt-1"
+          *ngIf="userForm.errors?.['mismatch'] && userForm.get('password_confirmation')?.touched">
           Passwords do not match.
         </div>
       </div>
+
 
       <div class="col-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Role <span class="text-danger">*</span></label>
         <select formControlName="role_id" class="form-select bg-light border-0 py-2 text-slate-600">
           <option [ngValue]="null">Select Role...</option>
-          <option *ngFor="let role of rolesResource.value()?.data" [ngValue]="role.id">{{ role.name }}</option>
+          <option *ngFor="let role of roles()" [ngValue]="role.id">{{ role.name }}</option>
         </select>
       </div>
 
@@ -99,12 +115,15 @@
 
     </form>
   </div>
-  
+
   <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
-    <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
-    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveUser()" [disabled]="userForm.invalid || isSaving()" [attr.data-bs-dismiss]="userForm.valid ? 'offcanvas' : null">
+    <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600"
+      data-bs-dismiss="offcanvas">Cancel</button>
+    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2"
+      (click)="saveUser()" [disabled]="userForm.invalid || isSaving()"
+      [attr.data-bs-dismiss]="userForm.valid ? 'offcanvas' : null">
       @if (isSaving()) {
-        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+      <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
       }
       <i class="bi bi-check2"></i> {{ isSaving() ? 'Saving...' : 'Save User' }}
     </button>
