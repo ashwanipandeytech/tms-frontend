@@ -24,6 +24,9 @@ export class AuthService {
       tap((res) => {
         if (res.success && res.data?.token) {
           localStorage.setItem('authToken', res.data.token);
+          if (res.data.user) {
+            this.currentUser.set(res.data.user);
+          }
           if (res.data.user?.role?.permissions) {
             localStorage.setItem('userPermissions', JSON.stringify(res.data.user.role.permissions));
           }
@@ -82,6 +85,10 @@ export class AuthService {
   }
 
   getPermissions(): string[] {
+    // Read the signal first to ensure Angular tracks the dependency
+    const user = this.currentUser();
+    if (user?.role?.permissions) return user.role.permissions;
+
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = localStorage.getItem('userPermissions');
       if (stored) {
@@ -92,8 +99,7 @@ export class AuthService {
         }
       }
     }
-    const user = this.currentUser();
-    return user?.role?.permissions || [];
+    return [];
   }
 
   hasPermission(permission: string): boolean {
@@ -129,18 +135,26 @@ export class AuthService {
   }
 
   getActiveTenant(): number | null {
+    // Read the signal first to ensure Angular tracks the dependency
+    const signalVal = this.activeTenantId();
+    if (signalVal !== null) return signalVal;
+
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = localStorage.getItem('activeTenantId');
       if (stored) return parseInt(stored, 10);
     }
-    return this.activeTenantId();
+    return null;
   }
 
   getActiveTenantName(): string | null {
+    // Read the signal first to ensure Angular tracks the dependency
+    const signalVal = this.activeTenantName();
+    if (signalVal !== null) return signalVal;
+
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored = localStorage.getItem('activeTenantName');
       if (stored) return stored;
     }
-    return this.activeTenantName();
+    return null;
   }
 }
