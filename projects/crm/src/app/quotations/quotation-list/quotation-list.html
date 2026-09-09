@@ -3,7 +3,7 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
     <div>
       <h2 class="fw-bold text-slate-800 mb-1">Quotation Management</h2>
-      <p class="text-slate-500 mb-0">Create, customize, share, and convert itemized travel quotations & day-wise itineraries</p>
+      <p class="text-slate-500 mb-0">Create, customize, approve, share, and convert itemized travel quotations & day-wise itineraries</p>
     </div>
     <div class="d-flex gap-2">
       <a routerLink="/quotations/create" class="btn btn-primary px-3 py-2 fw-medium shadow-sm d-inline-flex align-items-center gap-2">
@@ -17,12 +17,12 @@
     <div class="col-12 col-sm-6 col-xl-3">
       <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
         <div class="d-flex align-items-center gap-3">
-          <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-            <i class="bi bi-file-earmark-text fs-4"></i>
+          <div class="rounded-circle bg-warning-subtle text-warning-emphasis p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-clock-history fs-4"></i>
           </div>
           <div>
-            <div class="text-slate-500 small fw-medium">Total Quotations</div>
-            <div class="fs-4 fw-bold text-slate-800">{{ totalCount() }}</div>
+            <div class="text-slate-500 small fw-medium">Pending Manager Approval</div>
+            <div class="fs-4 fw-bold text-warning-emphasis">{{ pendingApprovalCount() }}</div>
           </div>
         </div>
       </div>
@@ -93,10 +93,16 @@
         <!-- Filter Tabs -->
         <div class="nav nav-pills gap-1">
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium position-relative" [class.active]="activeTab() === 'pending_approval'" (click)="setTab('pending_approval')">
+            Pending Approval
+            @if (pendingApprovalCount() > 0) {
+              <span class="badge rounded-pill bg-danger ms-1">{{ pendingApprovalCount() }}</span>
+            }
+          </button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'approved'" (click)="setTab('approved')">Approved</button>
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'draft'" (click)="setTab('draft')">Drafts</button>
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'sent'" (click)="setTab('sent')">Sent</button>
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'accepted'" (click)="setTab('accepted')">Accepted</button>
-          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'rejected'" (click)="setTab('rejected')">Rejected</button>
         </div>
 
         <!-- Search Input -->
@@ -117,20 +123,21 @@
             <th>Destination</th>
             <th>Travel Dates</th>
             <th class="text-end">Final Amount</th>
-            <th class="text-center">Status</th>
+            <th class="text-center">Approval Status</th>
+            <th class="text-center">Client Status</th>
             <th class="text-end pe-4">Actions</th>
           </tr>
         </thead>
         <tbody>
           @if (isLoading()) {
             <tr>
-              <td colspan="7" class="text-center py-5 text-slate-400">
+              <td colspan="8" class="text-center py-5 text-slate-400">
                 <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading quotations...
               </td>
             </tr>
           } @else if (quotations().length === 0) {
             <tr>
-              <td colspan="7" class="text-center py-5 text-slate-500">
+              <td colspan="8" class="text-center py-5 text-slate-500">
                 <i class="bi bi-file-earmark-x fs-1 d-block mb-2 text-slate-300"></i>
                 No quotations found for this view.
               </td>
@@ -165,6 +172,22 @@
                   ₹{{ q.final_amount | number:'1.2-2' }}
                 </td>
                 <td class="text-center">
+                  <span class="badge px-2-5 py-1 rounded-pill small fw-semibold" [ngClass]="getApprovalBadgeClass(q.approval_status)">
+                    @if (q.approval_status === 'approved') {
+                      <i class="bi bi-check-circle-fill me-1"></i> Approved
+                    } @else if (q.approval_status === 'pending_approval') {
+                      <i class="bi bi-clock-history me-1"></i> Pending Approval
+                    } @else if (q.approval_status === 'rejected_internal') {
+                      <i class="bi bi-exclamation-octagon me-1"></i> Revision Needed
+                    } @else {
+                      {{ q.approval_status || 'Auto' }}
+                    }
+                  </span>
+                  @if (q.approver) {
+                    <div class="small text-slate-400" style="font-size: 10px;">By {{ q.approver.name }}</div>
+                  }
+                </td>
+                <td class="text-center">
                   <span class="badge px-2-5 py-1 rounded-pill uppercase fw-semibold small" [ngClass]="getStatusBadgeClass(q.status, q.converted_booking_id)">
                     @if (q.converted_booking_id) {
                       <i class="bi bi-check2-all me-1"></i> Converted
@@ -178,16 +201,46 @@
                     <a [routerLink]="['/quotations/detail', q.id]" class="btn btn-outline-secondary" title="View Details">
                       <i class="bi bi-eye"></i>
                     </a>
+
+                    <!-- Manager Approval Controls -->
+                    @if (isManagerOrAdmin() && q.approval_status === 'pending_approval') {
+                      <button type="button" class="btn btn-success" (click)="approveQuotation(q)" title="Approve Quotation">
+                        <i class="bi bi-check-lg"></i> Approve
+                      </button>
+                      <button type="button" class="btn btn-danger" (click)="rejectInternal(q)" title="Reject & Request Revision">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    }
+
                     <a [routerLink]="['/quotations/edit', q.id]" class="btn btn-outline-secondary" title="Edit Draft">
                       <i class="bi bi-pencil"></i>
                     </a>
-                    <button type="button" class="btn btn-outline-secondary" (click)="downloadPdf(q)" title="Download PDF">
-                      <i class="bi bi-file-earmark-pdf text-danger"></i>
+
+                    <!-- PDF Action with Lock check -->
+                    <button type="button" class="btn btn-outline-secondary" (click)="downloadPdf(q)" [disabled]="q.approval_status === 'pending_approval'" title="Download PDF (Locked if Pending)">
+                      <i class="bi bi-file-earmark-pdf" [class.text-danger]="q.approval_status !== 'pending_approval'" [class.text-muted]="q.approval_status === 'pending_approval'"></i>
                     </button>
-                    <button type="button" class="btn btn-outline-secondary" (click)="duplicateQuotation(q)" title="Duplicate Draft">
-                      <i class="bi bi-copy"></i>
-                    </button>
-                    @if (q.status === 'draft') {
+
+                    <!-- Duplication Dropdown -->
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" title="Duplicate Options">
+                        <i class="bi bi-copy"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li>
+                          <button class="dropdown-item small" (click)="duplicateQuotation(q, 'option')">
+                            <i class="bi bi-person-check me-2 text-primary"></i> Duplicate Option (Same Client)
+                          </button>
+                        </li>
+                        <li>
+                          <button class="dropdown-item small" (click)="duplicateQuotation(q, 'template')">
+                            <i class="bi bi-file-earmark-plus me-2 text-success"></i> Copy as Template (New Client)
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+
+                    @if (q.status === 'draft' && q.approval_status === 'approved') {
                       <button type="button" class="btn btn-outline-primary" (click)="sendQuotation(q)" title="Mark Sent">
                         <i class="bi bi-send"></i>
                       </button>

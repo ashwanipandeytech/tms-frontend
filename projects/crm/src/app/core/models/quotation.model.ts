@@ -1,6 +1,19 @@
 export type QuotationStatus = 'draft' | 'sent' | 'accepted' | 'rejected';
+export type ApprovalStatus = 'not_required' | 'pending_approval' | 'approved' | 'rejected_internal';
 export type DiscountType = 'fixed' | 'percentage';
 export type QuotationItemType = 'package' | 'hotel' | 'resort' | 'villa' | 'cab' | 'custom';
+
+export interface QuotationApprovalLog {
+  id: number;
+  action: 'submitted' | 'approved' | 'rejected' | 'cancelled';
+  comments?: string;
+  snapshot_data?: any;
+  user?: {
+    id: number;
+    name: string;
+  };
+  created_at: string;
+}
 
 export interface QuotationItem {
   id?: number;
@@ -57,6 +70,8 @@ export interface Quotation {
   quotation_no: string;
   lead_id?: number;
   lead?: any;
+  customer_id?: number;
+  customer?: any;
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
@@ -76,6 +91,11 @@ export interface Quotation {
   tax_percentage?: number;
   final_amount: number;
   status: QuotationStatus;
+  approval_status?: ApprovalStatus;
+  approved_by?: number;
+  approver?: any;
+  approved_at?: string;
+  rejection_reason?: string;
   valid_till?: string;
   pdf_path?: string;
   notes?: string;
@@ -89,12 +109,14 @@ export interface Quotation {
   creator?: any;
   items?: QuotationItem[];
   itinerary?: Itinerary;
+  approval_logs?: QuotationApprovalLog[];
   created_at?: string;
   updated_at?: string;
 }
 
 export interface QuotationPayload {
   lead_id?: number;
+  customer_id?: number;
   customer_name?: string;
   customer_email?: string;
   customer_phone?: string;
@@ -113,6 +135,7 @@ export interface QuotationPayload {
   gst_amount?: number;
   final_amount?: number;
   status?: QuotationStatus;
+  approval_status?: ApprovalStatus;
   valid_till?: string;
   notes?: string;
   terms_and_conditions?: string;

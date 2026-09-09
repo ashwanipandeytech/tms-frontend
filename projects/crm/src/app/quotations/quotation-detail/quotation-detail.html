@@ -20,6 +20,9 @@
               {{ q.status }}
             }
           </span>
+          <span class="badge px-3 py-1-5 rounded-pill small fw-semibold" [ngClass]="getApprovalBadgeClass(q.approval_status)">
+            {{ q.approval_status || 'Auto' }}
+          </span>
           <span class="badge bg-slate-100 text-slate-600 border">Version {{ q.version || 1 }}</span>
         </div>
         <p class="text-slate-500 mb-0">Created on {{ q.created_at | date:'mediumDate' }} @if (q.creator) { by {{ q.creator.name }} }</p>
@@ -29,20 +32,42 @@
         <a routerLink="/quotations" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left"></i> Back
         </a>
-        <button type="button" class="btn btn-outline-danger" (click)="downloadPdf()" title="Download PDF">
+        <button type="button" class="btn btn-outline-danger" (click)="downloadPdf()" [disabled]="q.approval_status === 'pending_approval'" title="Download PDF (Locked if Pending Approval)">
           <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
         </button>
-        <button type="button" class="btn btn-outline-secondary" (click)="duplicateQuotation()" [disabled]="isActionLoading()">
-          <i class="bi bi-copy me-1"></i> Duplicate
-        </button>
+
+        <!-- Duplication Options Dropdown -->
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" [disabled]="isActionLoading()">
+            <i class="bi bi-copy me-1"></i> Duplicate
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow">
+            <li>
+              <button class="dropdown-item small" (click)="duplicateQuotation('option')">
+                <i class="bi bi-person-check me-2 text-primary"></i> Duplicate Option (Same Client)
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item small" (click)="duplicateQuotation('template')">
+                <i class="bi bi-file-earmark-plus me-2 text-success"></i> Copy as Template (New Client)
+              </button>
+            </li>
+          </ul>
+        </div>
 
         @if (q.status === 'draft') {
           <a [routerLink]="['/quotations/edit', q.id]" class="btn btn-outline-primary">
             <i class="bi bi-pencil me-1"></i> Edit Draft
           </a>
-          <button type="button" class="btn btn-primary" (click)="sendQuotation()" [disabled]="isActionLoading()">
-            <i class="bi bi-send me-1"></i> Mark as Sent
-          </button>
+          @if (q.approval_status === 'approved') {
+            <button type="button" class="btn btn-primary" (click)="sendQuotation()" [disabled]="isActionLoading()">
+              <i class="bi bi-send me-1"></i> Mark as Sent
+            </button>
+          } @else if (q.approval_status === 'pending_approval' && !isManagerOrAdmin()) {
+            <button type="button" class="btn btn-warning text-dark disabled" title="Pending Manager Approval">
+              <i class="bi bi-clock-history me-1"></i> Pending Approval
+            </button>
+          }
         }
 
         @if (q.status === 'sent') {
@@ -58,6 +83,37 @@
         }
       </div>
     </div>
+
+    <!-- Manager Approval Alert Banner -->
+    @if (q.approval_status === 'pending_approval') {
+      <div class="alert alert-warning border-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center p-3 mb-4 rounded-3 shadow-sm">
+        <div>
+          <h5 class="fw-bold text-dark mb-1"><i class="bi bi-clock-history text-warning me-2"></i> Pending Manager Approval</h5>
+          <p class="mb-0 text-secondary small">This quotation was created by a Sales Executive and requires Manager approval before PDF download or client sharing.</p>
+        </div>
+        @if (isManagerOrAdmin()) {
+          <div class="d-flex gap-2 mt-3 mt-md-0">
+            <button class="btn btn-success fw-bold px-3 shadow-sm" (click)="approveQuotation()" [disabled]="isActionLoading()"><i class="bi bi-check-lg me-1"></i> Approve Quotation</button>
+            <button class="btn btn-outline-danger fw-bold px-3" (click)="rejectInternal()" [disabled]="isActionLoading()"><i class="bi bi-x-circle me-1"></i> Reject with Reason</button>
+          </div>
+        }
+      </div>
+    } @else if (q.approval_status === 'rejected_internal') {
+      <div class="alert alert-danger border-danger p-3 mb-4 rounded-3 shadow-sm">
+        <h5 class="fw-bold mb-1"><i class="bi bi-exclamation-octagon me-2"></i> Manager Rejected — Revision Required</h5>
+        <p class="mb-0 small"><strong>Rejection Feedback:</strong> {{ q.rejection_reason }}</p>
+      </div>
+    } @else if (q.approval_status === 'approved') {
+      <div class="alert alert-success border-success p-3 mb-4 rounded-3 shadow-sm d-flex align-items-center justify-content-between">
+        <div>
+          <i class="bi bi-shield-check text-success fs-5 me-2"></i>
+          <strong>Internal Manager Approval Granted</strong>
+          @if (q.approver) { by <strong>{{ q.approver.name }}</strong> }
+          @if (q.approved_at) { on {{ q.approved_at | date:'medium' }} }
+        </div>
+        <span class="badge bg-success px-3 py-1-5">Ready for Client</span>
+      </div>
+    }
 
     <!-- Alerts -->
     @if (actionError()) {
@@ -89,6 +145,9 @@
               }
               @if (q.customer_phone || q.lead?.phone) {
                 <div class="text-slate-600 small"><i class="bi bi-telephone me-1 text-slate-400"></i> {{ q.customer_phone || q.lead?.phone }}</div>
+              }
+              @if (q.customer_id) {
+                <div class="mt-2 text-xs text-success fw-semibold"><i class="bi bi-person-check me-1"></i> Synced with Master Customer Directory</div>
               }
             </div>
           </div>
@@ -200,9 +259,10 @@
 
       </div>
 
-      <!-- Right Column: Financial Summary -->
+      <!-- Right Column: Financial Summary & Approval Audit Trail -->
       <div class="col-12 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+        <!-- Financial Overview Card -->
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4 mb-4">
           <h5 class="fw-bold text-slate-800 mb-3 border-bottom pb-2">Financial Overview</h5>
 
           <div class="d-flex justify-content-between mb-2 text-slate-600">
@@ -232,11 +292,47 @@
           </div>
 
           <div class="d-grid gap-2">
-            <button type="button" class="btn btn-outline-danger" (click)="downloadPdf()">
+            <button type="button" class="btn btn-outline-danger" (click)="downloadPdf()" [disabled]="q.approval_status === 'pending_approval'">
               <i class="bi bi-file-earmark-pdf me-1"></i> Preview PDF Document
             </button>
           </div>
         </div>
+
+        <!-- Approval Audit Trail Card -->
+        <div class="card border-0 shadow-sm rounded-3 bg-white p-4">
+          <h5 class="fw-bold text-slate-800 mb-3 border-bottom pb-2"><i class="bi bi-shield-lock me-2 text-primary"></i> Approval Audit Trail</h5>
+
+          @if (approvalLogs().length > 0) {
+            <div class="timeline ps-2">
+              @for (log of approvalLogs(); track log.id || $index) {
+                <div class="mb-3 border-start border-2 ps-3 position-relative"
+                     [class.border-success]="log.action === 'approved'"
+                     [class.border-danger]="log.action === 'rejected'"
+                     [class.border-warning]="log.action === 'submitted'">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="fw-bold uppercase small"
+                          [class.text-success]="log.action === 'approved'"
+                          [class.text-danger]="log.action === 'rejected'"
+                          [class.text-warning]="log.action === 'submitted'">
+                      {{ log.action }}
+                    </span>
+                    <span class="text-muted text-xs">{{ log.created_at | date:'short' }}</span>
+                  </div>
+                  <div class="small text-slate-700">By <strong>{{ log.user?.name || 'User' }}</strong></div>
+                  @if (log.comments) {
+                    <div class="small text-slate-500 italic mt-1 bg-light p-2 rounded">"{{ log.comments }}"</div>
+                  }
+                  @if (log.snapshot_data) {
+                    <div class="text-xs text-slate-400 mt-1">Snapshot Final: ₹{{ (log.snapshot_data?.final_amount || 0) | number:'1.2-2' }}</div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="text-slate-400 small">No approval audit trail entries recorded yet.</div>
+          }
+        </div>
+
       </div>
 
     </div>

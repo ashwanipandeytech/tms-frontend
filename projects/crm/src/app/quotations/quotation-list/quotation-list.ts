@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { QuotationService } from '../../core/services/quotation.service';
-import { Quotation, QuotationStatus } from '../../core/models/quotation.model';
+import { AuthService } from '../../core/services/auth.service';
+import { Quotation } from '../../core/models/quotation.model';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
@@ -24,7 +25,14 @@ export class QuotationListComponent implements OnInit {
   actionError = signal<string | null>(null);
   actionSuccess = signal<string | null>(null);
 
+  // User Role Check
+  isManagerOrAdmin = computed(() => {
+    const user = this.authService.currentUser();
+    return user?.role_id === 1 || user?.role_id === 2; // Super Admin or Manager
+  });
+
   // Computed metrics
+  pendingApprovalCount = computed(() => this.quotations().filter(q => q.approval_status === 'pending_approval').length);
   draftCount = computed(() => this.quotations().filter(q => q.status === 'draft').length);
   sentCount = computed(() => this.quotations().filter(q => q.status === 'sent').length);
   acceptedCount = computed(() => this.quotations().filter(q => q.status === 'accepted' || q.converted_booking_id).length);
@@ -32,6 +40,7 @@ export class QuotationListComponent implements OnInit {
 
   constructor(
     private quotationService: QuotationService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -44,13 +53,24 @@ export class QuotationListComponent implements OnInit {
     this.actionError.set(null);
 
     try {
-      const statusFilter = this.activeTab() === 'all' ? undefined : this.activeTab();
+      let statusFilter: string | undefined = undefined;
+      let approvalStatusFilter: string | undefined = undefined;
+
+      if (this.activeTab() === 'pending_approval') {
+        approvalStatusFilter = 'pending_approval';
+      } else if (this.activeTab() === 'approved') {
+        approvalStatusFilter = 'approved';
+      } else if (this.activeTab() !== 'all') {
+        statusFilter = this.activeTab();
+      }
+
       const res = await firstValueFrom(
         this.quotationService.getQuotations({
           page: this.currentPage(),
           per_page: 15,
           search: this.searchQuery(),
-          status: statusFilter
+          status: statusFilter,
+          approval_status: approvalStatusFilter
         })
       );
 
@@ -77,7 +97,51 @@ export class QuotationListComponent implements OnInit {
     this.fetchQuotations();
   }
 
+  async submitApproval(q: Quotation): Promise<void> {
+    try {
+      await firstValueFrom(this.quotationService.submitApproval(q.id, 'Submitted for Manager Review'));
+      this.actionSuccess.set(`Quotation #${q.quotation_no} submitted for Manager approval!`);
+      this.fetchQuotations();
+    } catch (err: any) {
+      this.actionError.set(err?.error?.message || 'Failed to submit quotation for approval');
+    }
+  }
+
+  async approveQuotation(q: Quotation): Promise<void> {
+    const comments = prompt(`Approve Quotation #${q.quotation_no}? (Optional comments):`, 'Approved by Manager');
+    if (comments === null) return; // Cancelled
+
+    try {
+      await firstValueFrom(this.quotationService.approveQuotation(q.id, comments));
+      this.actionSuccess.set(`Quotation #${q.quotation_no} Approved successfully!`);
+      this.fetchQuotations();
+    } catch (err: any) {
+      this.actionError.set(err?.error?.message || 'Failed to approve quotation');
+    }
+  }
+
+  async rejectInternal(q: Quotation): Promise<void> {
+    const reason = prompt(`Reject & request revision for Quotation #${q.quotation_no}? (Required reason):`);
+    if (!reason) {
+      if (reason !== null) alert('Rejection reason is required.');
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.quotationService.rejectInternal(q.id, reason));
+      this.actionSuccess.set(`Quotation #${q.quotation_no} returned for revision with feedback.`);
+      this.fetchQuotations();
+    } catch (err: any) {
+      this.actionError.set(err?.error?.message || 'Failed to reject quotation');
+    }
+  }
+
   async sendQuotation(q: Quotation): Promise<void> {
+    if (q.approval_status === 'pending_approval') {
+      alert('This quotation is pending Manager approval. It cannot be sent to the client until approved.');
+      return;
+    }
+
     try {
       await firstValueFrom(this.quotationService.sendQuotation(q.id));
       this.actionSuccess.set(`Quotation #${q.quotation_no} marked as Sent!`);
@@ -87,10 +151,13 @@ export class QuotationListComponent implements OnInit {
     }
   }
 
-  async duplicateQuotation(q: Quotation): Promise<void> {
+  async duplicateQuotation(q: Quotation, mode: 'option' | 'template' = 'option'): Promise<void> {
+    const modeLabel = mode === 'option' ? 'New Option for Same Client' : 'Reusable Template for New Client';
+    if (!confirm(`Duplicate Quotation #${q.quotation_no} as ${modeLabel}?`)) return;
+
     try {
-      const newQ = await firstValueFrom(this.quotationService.duplicateQuotation(q.id));
-      this.actionSuccess.set(`Quotation duplicated into new draft #${newQ.quotation_no}`);
+      const newQ = await firstValueFrom(this.quotationService.duplicateQuotation(q.id, mode));
+      this.actionSuccess.set(`Quotation duplicated as ${modeLabel} (#${newQ.quotation_no})!`);
       this.router.navigate(['/quotations/edit', newQ.id]);
     } catch (err: any) {
       this.actionError.set(err?.error?.message || 'Failed to duplicate quotation');
@@ -110,6 +177,11 @@ export class QuotationListComponent implements OnInit {
   }
 
   downloadPdf(q: Quotation): void {
+    if (q.approval_status === 'pending_approval') {
+      alert('PDF Download is locked until Manager approval is granted.');
+      return;
+    }
+
     this.actionError.set(null);
     this.quotationService.downloadPdfBlob(q.id).subscribe({
       next: (blob: Blob) => {
@@ -131,6 +203,15 @@ export class QuotationListComponent implements OnInit {
       case 'accepted': return 'bg-success text-white border-0';
       case 'rejected': return 'bg-danger text-white border-0';
       default: return 'bg-info text-dark border-0';
+    }
+  }
+
+  getApprovalBadgeClass(approvalStatus?: string): string {
+    switch (approvalStatus) {
+      case 'approved': return 'bg-success-subtle text-success border border-success';
+      case 'pending_approval': return 'bg-warning-subtle text-dark border border-warning';
+      case 'rejected_internal': return 'bg-danger-subtle text-danger border border-danger';
+      default: return 'bg-light text-muted border';
     }
   }
 }
