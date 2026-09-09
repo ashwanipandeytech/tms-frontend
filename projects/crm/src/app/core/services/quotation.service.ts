@@ -86,4 +86,8 @@ export class QuotationService {
   getPdfUrl(id: number): string {
     return `${this.apiUrl}/${id}/pdf`;
   }
+
+  downloadPdfBlob(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/pdf`, { responseType: 'blob' });
+  }
 }

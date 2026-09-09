@@ -101,19 +101,28 @@ export class QuotationDetailComponent implements OnInit {
   }
 
   downloadPdf(): void {
-    if (this.quotation()) {
-      window.open(this.quotationService.getPdfUrl(this.quotation()!.id), '_blank');
-    }
+    if (!this.quotation()) return;
+    this.actionError.set(null);
+    this.quotationService.downloadPdfBlob(this.quotation()!.id).subscribe({
+      next: (blob: Blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+      },
+      error: (err: any) => {
+        console.error('Failed to download PDF blob', err);
+        this.actionError.set(err?.error?.message || 'Failed to download PDF');
+      }
+    });
   }
 
   getStatusBadgeClass(status: string, convertedId?: number): string {
-    if (convertedId) return 'bg-purple-100 text-purple-700 border-purple-200';
-    switch (status) {
-      case 'draft': return 'bg-slate-100 text-slate-700 border-slate-200';
-      case 'sent': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'accepted': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'rejected': return 'bg-rose-100 text-rose-700 border-rose-200';
-      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    if (convertedId) return 'bg-dark text-white border-0';
+    switch (status?.toLowerCase()) {
+      case 'draft': return 'bg-secondary text-white border-0';
+      case 'sent': return 'bg-primary text-white border-0';
+      case 'accepted': return 'bg-success text-white border-0';
+      case 'rejected': return 'bg-danger text-white border-0';
+      default: return 'bg-info text-dark border-0';
     }
   }
 }

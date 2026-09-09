@@ -149,7 +149,7 @@
                   }
                 </td>
                 <td>
-                  <span class="badge bg-slate-100 text-slate-700 border">{{ q.destination || q.lead?.destination || 'Custom Tour' }}</span>
+                  <span class="badge bg-light text-dark border shadow-sm px-2 py-1">{{ q.destination || q.lead?.destination || 'Custom Tour' }}</span>
                 </td>
                 <td class="small text-slate-600">
                   @if (q.travel_date) {
@@ -165,7 +165,7 @@
                   ₹{{ q.final_amount | number:'1.2-2' }}
                 </td>
                 <td class="text-center">
-                  <span class="badge px-2-5 py-1 border rounded-pill uppercase fw-semibold small" [ngClass]="getStatusBadgeClass(q.status, q.converted_booking_id)">
+                  <span class="badge px-2-5 py-1 rounded-pill uppercase fw-semibold small" [ngClass]="getStatusBadgeClass(q.status, q.converted_booking_id)">
                     @if (q.converted_booking_id) {
                       <i class="bi bi-check2-all me-1"></i> Converted
                     } @else {
