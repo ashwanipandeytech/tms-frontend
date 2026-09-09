@@ -1,0 +1,209 @@
+<div class="container-fluid p-4">
+  <!-- Header Banner -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h2 class="fw-bold text-slate-800 mb-1">Quotation Management</h2>
+      <p class="text-slate-500 mb-0">Create, customize, share, and convert itemized travel quotations & day-wise itineraries</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a routerLink="/quotations/create" class="btn btn-primary px-3 py-2 fw-medium shadow-sm d-inline-flex align-items-center gap-2">
+        <i class="bi bi-plus-lg"></i> Create Quotation
+      </a>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-file-earmark-text fs-4"></i>
+          </div>
+          <div>
+            <div class="text-slate-500 small fw-medium">Total Quotations</div>
+            <div class="fs-4 fw-bold text-slate-800">{{ totalCount() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-blue-100 text-blue-600 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-send fs-4"></i>
+          </div>
+          <div>
+            <div class="text-slate-500 small fw-medium">Sent to Customers</div>
+            <div class="fs-4 fw-bold text-blue-600">{{ sentCount() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-emerald-100 text-emerald-600 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-check-circle fs-4"></i>
+          </div>
+          <div>
+            <div class="text-slate-500 small fw-medium">Accepted / Converted</div>
+            <div class="fs-4 fw-bold text-emerald-600">{{ acceptedCount() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle bg-purple-100 text-purple-600 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+            <i class="bi bi-currency-rupee fs-4"></i>
+          </div>
+          <div>
+            <div class="text-slate-500 small fw-medium">Pipeline Value</div>
+            <div class="fs-5 fw-bold text-purple-700">₹{{ totalPipelineValue() | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (actionError()) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ actionError() }}
+      <button type="button" class="btn-close" (click)="actionError.set(null)"></button>
+    </div>
+  }
+  @if (actionSuccess()) {
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i> {{ actionSuccess() }}
+      <button type="button" class="btn-close" (click)="actionSuccess.set(null)"></button>
+    </div>
+  }
+
+  <!-- Main Card -->
+  <div class="card border-0 shadow-sm rounded-3 bg-white">
+    <!-- Controls Bar -->
+    <div class="card-header bg-white border-bottom p-3">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <!-- Filter Tabs -->
+        <div class="nav nav-pills gap-1">
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'draft'" (click)="setTab('draft')">Drafts</button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'sent'" (click)="setTab('sent')">Sent</button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'accepted'" (click)="setTab('accepted')">Accepted</button>
+          <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'rejected'" (click)="setTab('rejected')">Rejected</button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="input-group style-search" style="max-width: 300px;">
+          <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-slate-400"></i></span>
+          <input type="text" class="form-control bg-light border-start-0" placeholder="Search by QT # or Customer..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); onSearch()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light text-slate-600 small uppercase fw-bold">
+          <tr>
+            <th class="ps-4">Quotation #</th>
+            <th>Customer & Lead</th>
+            <th>Destination</th>
+            <th>Travel Dates</th>
+            <th class="text-end">Final Amount</th>
+            <th class="text-center">Status</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading()) {
+            <tr>
+              <td colspan="7" class="text-center py-5 text-slate-400">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading quotations...
+              </td>
+            </tr>
+          } @else if (quotations().length === 0) {
+            <tr>
+              <td colspan="7" class="text-center py-5 text-slate-500">
+                <i class="bi bi-file-earmark-x fs-1 d-block mb-2 text-slate-300"></i>
+                No quotations found for this view.
+              </td>
+            </tr>
+          } @else {
+            @for (q of quotations(); track q.id) {
+              <tr>
+                <td class="ps-4 font-mono fw-bold text-primary">
+                  <a [routerLink]="['/quotations/detail', q.id]" class="text-decoration-none">{{ q.quotation_no }}</a>
+                  <div class="small text-slate-400 font-sans">Ver. {{ q.version || 1 }}</div>
+                </td>
+                <td>
+                  <div class="fw-semibold text-slate-800">{{ q.customer_name || q.lead?.name || 'Valued Customer' }}</div>
+                  @if (q.customer_email || q.lead?.email) {
+                    <div class="small text-slate-500">{{ q.customer_email || q.lead?.email }}</div>
+                  }
+                </td>
+                <td>
+                  <span class="badge bg-slate-100 text-slate-700 border">{{ q.destination || q.lead?.destination || 'Custom Tour' }}</span>
+                </td>
+                <td class="small text-slate-600">
+                  @if (q.travel_date) {
+                    <div><i class="bi bi-calendar-event me-1 text-slate-400"></i> {{ q.travel_date }}</div>
+                  } @else {
+                    <span class="text-slate-400">Flexible</span>
+                  }
+                  @if (q.adults) {
+                    <div class="text-slate-400">{{ q.adults }} Adults @if(q.children){, {{q.children}} Child}</div>
+                  }
+                </td>
+                <td class="text-end fw-bold text-slate-800">
+                  ₹{{ q.final_amount | number:'1.2-2' }}
+                </td>
+                <td class="text-center">
+                  <span class="badge px-2-5 py-1 border rounded-pill uppercase fw-semibold small" [ngClass]="getStatusBadgeClass(q.status, q.converted_booking_id)">
+                    @if (q.converted_booking_id) {
+                      <i class="bi bi-check2-all me-1"></i> Converted
+                    } @else {
+                      {{ q.status }}
+                    }
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <div class="btn-group btn-group-sm">
+                    <a [routerLink]="['/quotations/detail', q.id]" class="btn btn-outline-secondary" title="View Details">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a [routerLink]="['/quotations/edit', q.id]" class="btn btn-outline-secondary" title="Edit Draft">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button type="button" class="btn btn-outline-secondary" (click)="downloadPdf(q)" title="Download PDF">
+                      <i class="bi bi-file-earmark-pdf text-danger"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" (click)="duplicateQuotation(q)" title="Duplicate Draft">
+                      <i class="bi bi-copy"></i>
+                    </button>
+                    @if (q.status === 'draft') {
+                      <button type="button" class="btn btn-outline-primary" (click)="sendQuotation(q)" title="Mark Sent">
+                        <i class="bi bi-send"></i>
+                      </button>
+                    }
+                    @if (q.status === 'accepted' && !q.converted_booking_id) {
+                      <button type="button" class="btn btn-success" (click)="convertToBooking(q)" title="Convert to Booking">
+                        <i class="bi bi-cart-check"></i> Convert
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -4,7 +4,9 @@ import { Dashboard } from './dashboard/dashboard';
 import { LeadsComponent } from './leads/leads';
 import { FollowUpsComponent } from './follow-ups/follow-ups';
 import { CouponsComponent } from './coupons/coupons';
-import { QuotationsComponent } from './quotations/quotations';
+import { QuotationListComponent } from './quotations/quotation-list/quotation-list';
+import { QuotationEditorComponent } from './quotations/quotation-editor/quotation-editor';
+import { QuotationDetailComponent } from './quotations/quotation-detail/quotation-detail';
 import { ItinerariesComponent } from './itineraries/itineraries';
 import { BookingsComponent } from './bookings/bookings';
 import { CustomersComponent } from './customers/customers';
@@ -49,7 +51,10 @@ export const routes: Routes = [
       { path: 'leads', component: LeadsComponent, canActivate: [permissionGuard], data: { permissions: ['leads.view'] } },
       { path: 'follow-ups', component: FollowUpsComponent, canActivate: [permissionGuard], data: { permissions: ['followups.view'] } },
       { path: 'coupons', component: CouponsComponent, canActivate: [permissionGuard], data: { permissions: ['packages.view'] } },
-      { path: 'quotations', component: QuotationsComponent, canActivate: [permissionGuard], data: { permissions: ['quotations.view'] } },
+      { path: 'quotations', component: QuotationListComponent, canActivate: [permissionGuard], data: { permissions: ['quotations.view'] } },
+      { path: 'quotations/create', component: QuotationEditorComponent, canActivate: [permissionGuard], data: { permissions: ['quotations.view'] } },
+      { path: 'quotations/edit/:id', component: QuotationEditorComponent, canActivate: [permissionGuard], data: { permissions: ['quotations.view'] } },
+      { path: 'quotations/detail/:id', component: QuotationDetailComponent, canActivate: [permissionGuard], data: { permissions: ['quotations.view'] } },
       { path: 'itineraries', component: ItinerariesComponent, canActivate: [permissionGuard], data: { permissions: ['packages.view'] } },
       { path: 'bookings', component: BookingsComponent, canActivate: [permissionGuard], data: { permissions: ['bookings.view'] } },
       { path: 'customers', component: CustomersComponent, canActivate: [permissionGuard], data: { permissions: ['leads.view'] } },

@@ -1,0 +1,281 @@
+<div class="container-fluid p-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="fw-bold text-slate-800 mb-1">{{ isEditMode() ? 'Edit Quotation #' + quotationId() : 'Create New Quotation' }}</h2>
+      <p class="text-slate-500 mb-0">Build itemized price proposals & day-wise itinerary timelines for travel prospects</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a routerLink="/quotations" class="btn btn-outline-secondary px-3 py-2 fw-medium">Cancel</a>
+      <button type="button" class="btn btn-primary px-4 py-2 fw-semibold" (click)="onSubmit()" [disabled]="isSaving()">
+        @if (isSaving()) {
+          <span class="spinner-border spinner-border-sm me-2"></span> Saving...
+        } @else {
+          <i class="bi bi-check-lg me-1"></i> Save Quotation
+        }
+      </button>
+    </div>
+  </div>
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="card border-0 shadow-sm p-5 text-center text-slate-400">
+      <div class="spinner-border text-primary me-2"></div> Loading quotation details...
+    </div>
+  } @else {
+    <form [formGroup]="quotationForm" (ngSubmit)="onSubmit()">
+      <div class="row g-4">
+
+        <!-- Left Column: Step Forms -->
+        <div class="col-12 col-lg-8">
+
+          <!-- Section 1: Customer & Travel Details -->
+          <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+              <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle">1</span> Lead & Customer Info
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-slate-700 fw-medium">Import from Lead (Optional)</label>
+                  <select class="form-select bg-light" formControlName="lead_id" (change)="onLeadSelect($any($event.target).value)">
+                    <option [ngValue]="null">-- Select Existing Lead --</option>
+                    @for (l of leads(); track l.id) {
+                      <option [value]="l.id">{{ l.name }} ({{ l.destination || 'Lead #' + l.id }})</option>
+                    }
+                  </select>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-slate-700 fw-medium">Customer Full Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" formControlName="customer_name" placeholder="e.g. Rahul Sharma">
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Customer Email</label>
+                  <input type="email" class="form-control" formControlName="customer_email" placeholder="rahul@example.com">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Phone Number</label>
+                  <input type="text" class="form-control" formControlName="customer_phone" placeholder="9876543210">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Destination / Tour Title</label>
+                  <input type="text" class="form-control" formControlName="destination" placeholder="Goa Luxury Tour">
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Travel Start Date</label>
+                  <input type="date" class="form-control" formControlName="travel_date">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Return Date</label>
+                  <input type="date" class="form-control" formControlName="return_date">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label text-slate-700 fw-medium">Pax (Adults / Children / Infants)</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control text-center" formControlName="adults" min="1" placeholder="Adults">
+                    <input type="number" class="form-control text-center" formControlName="children" min="0" placeholder="Children">
+                    <input type="number" class="form-control text-center" formControlName="infants" min="0" placeholder="Infants">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Itemized Line Items Builder -->
+          <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+            <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle">2</span> Itemized Pricing & Inclusions
+              </h5>
+              <button type="button" class="btn btn-sm btn-outline-primary fw-medium" (click)="addItem()">
+                <i class="bi bi-plus-circle me-1"></i> Add Line Item
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div formArrayName="items">
+                @for (itemCtrl of itemsFormArray.controls; track $index) {
+                  <div [formGroupName]="$index" class="p-3 mb-3 border rounded-3 bg-slate-50 relative">
+                    <div class="row g-2 align-items-center">
+                      <div class="col-12 col-md-2">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Type</label>
+                        <select class="form-select form-select-sm bg-white" formControlName="item_type">
+                          <option value="hotel">Hotel Stay</option>
+                          <option value="resort">Resort Stay</option>
+                          <option value="villa">Villa Rental</option>
+                          <option value="package">Tour Package</option>
+                          <option value="cab">Cab / Transport</option>
+                          <option value="custom">Custom Service</option>
+                        </select>
+                      </div>
+
+                      <div class="col-12 col-md-4">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Service Description</label>
+                        <input type="text" class="form-control form-control-sm bg-white" formControlName="description" placeholder="e.g. Taj Exotica Resort Stay (Deluxe Room)">
+                      </div>
+
+                      <div class="col-6 col-md-2">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Nights</label>
+                        <input type="number" class="form-control form-control-sm bg-white text-center" formControlName="nights" min="1">
+                      </div>
+
+                      <div class="col-6 col-md-2">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Unit Price (₹)</label>
+                        <input type="number" class="form-control form-control-sm bg-white text-end" formControlName="unit_price" min="0">
+                      </div>
+
+                      <div class="col-6 col-md-1 text-center">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Qty</label>
+                        <input type="number" class="form-control form-control-sm bg-white text-center" formControlName="quantity" min="1">
+                      </div>
+
+                      <div class="col-6 col-md-1 text-end">
+                        <label class="form-label text-xs text-slate-500 uppercase fw-bold mb-1">Action</label>
+                        <div>
+                          <button type="button" class="btn btn-sm btn-outline-danger border-0" (click)="removeItem($index)" title="Delete Line Item">
+                            <i class="bi bi-trash"></i>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="mt-2 text-end text-xs fw-semibold text-slate-600">
+                      Total: ₹{{ calculateItemTotal($index) | number:'1.2-2' }}
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Day-wise Itinerary Builder -->
+          <div formGroupName="itinerary" class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+            <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+              <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle">3</span> Day-by-Day Itinerary Builder
+              </h5>
+              <button type="button" class="btn btn-sm btn-outline-primary fw-medium" (click)="addDay()">
+                <i class="bi bi-plus-circle me-1"></i> Add Day
+              </button>
+            </div>
+            <div class="card-body p-3">
+              <div class="mb-3">
+                <label class="form-label text-slate-700 fw-medium">Itinerary Title</label>
+                <input type="text" class="form-control" formControlName="title" placeholder="5 Days Luxury Goa Tour Itinerary">
+              </div>
+
+              <div formArrayName="days">
+                @for (dayCtrl of daysFormArray.controls; track $index) {
+                  <div [formGroupName]="$index" class="p-3 mb-3 border rounded-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="badge bg-slate-800 text-white px-2-5 py-1">Day {{ dayCtrl.get('day_number')?.value }}</span>
+                      <button type="button" class="btn btn-sm btn-outline-danger border-0" (click)="removeDay($index)" title="Remove Day">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                      <div class="col-12 col-md-8">
+                        <input type="text" class="form-control form-control-sm fw-semibold" formControlName="title" placeholder="Day Title (e.g. Arrival & Beach Leisure)">
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <input type="text" class="form-control form-control-sm" formControlName="meals" placeholder="Meals (e.g. Breakfast, Dinner)">
+                      </div>
+                    </div>
+
+                    <div>
+                      <textarea class="form-control form-control-sm" rows="2" formControlName="description" placeholder="Activities, sightseeing plan, hotel stay details for this day..."></textarea>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Terms & Conditions -->
+          <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
+            <div class="card-header bg-white border-bottom p-3">
+              <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+                <span class="badge bg-primary rounded-circle">4</span> Terms, Notes & Validity
+              </h5>
+            </div>
+            <div class="card-body p-3">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-slate-700 fw-medium">Special Notes for Customer</label>
+                  <textarea class="form-control" rows="3" formControlName="notes" placeholder="e.g. Rates subject to hotel room availability at time of confirmation."></textarea>
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label text-slate-700 fw-medium">Terms & Conditions</label>
+                  <textarea class="form-control" rows="3" formControlName="terms_and_conditions"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Live Financial Calculator Sidebar -->
+        <div class="col-12 col-lg-4">
+          <div class="card border-0 shadow-sm rounded-3 bg-white sticky-top" style="top: 80px;">
+            <div class="card-header bg-slate-900 text-white p-3">
+              <h5 class="fw-bold mb-0"><i class="bi bi-calculator me-2"></i> Financial Summary</h5>
+            </div>
+            <div class="card-body p-3">
+              <div class="d-flex justify-content-between mb-2 text-slate-600">
+                <span>Subtotal Items:</span>
+                <span class="fw-bold text-slate-800">₹{{ calculateSubtotal() | number:'1.2-2' }}</span>
+              </div>
+
+              <!-- Discount Control -->
+              <div class="mb-3 p-2 bg-slate-50 rounded border">
+                <label class="form-label text-xs fw-bold text-slate-600 mb-1">Discount</label>
+                <div class="input-group input-group-sm">
+                  <select class="form-select bg-white" formControlName="discount_type" style="max-width: 100px;">
+                    <option value="fixed">Fixed (₹)</option>
+                    <option value="percentage">Percent (%)</option>
+                  </select>
+                  <input type="number" class="form-control bg-white text-end" formControlName="discount" min="0">
+                </div>
+                <div class="text-end text-xs text-emerald-600 mt-1">-₹{{ calculateDiscountAmount() | number:'1.2-2' }}</div>
+              </div>
+
+              <!-- GST Control -->
+              <div class="mb-3 p-2 bg-slate-50 rounded border">
+                <label class="form-label text-xs fw-bold text-slate-600 mb-1">GST / Tax Percentage (%)</label>
+                <div class="input-group input-group-sm">
+                  <input type="number" class="form-control bg-white text-end" formControlName="tax_percentage" min="0" max="100">
+                  <span class="input-group-text">%</span>
+                </div>
+                <div class="text-end text-xs text-slate-500 mt-1">+₹{{ calculateGstAmount() | number:'1.2-2' }}</div>
+              </div>
+
+              <hr>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fs-5 fw-bold text-slate-800">Final Total:</span>
+                <span class="fs-4 fw-bold text-primary">₹{{ calculateFinalAmount() | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" [disabled]="isSaving()">
+                  <i class="bi bi-save me-1"></i> {{ isEditMode() ? 'Update Quotation' : 'Create Quotation' }}
+                </button>
+                <a routerLink="/quotations" class="btn btn-outline-secondary">Back to List</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </form>
+  }
+</div>

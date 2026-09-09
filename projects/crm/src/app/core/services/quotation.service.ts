@@ -1,9 +1,16 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { ApiResponse, PaginatedResponse } from '../models/api-response.model';
-import { Quotation, CreateQuotationDto } from '../models/quotation.model';
+import { Quotation, QuotationPayload } from '../models/quotation.model';
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  meta?: any;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,27 +20,70 @@ export class QuotationService {
 
   constructor(private http: HttpClient) {}
 
-  getQuotations(params?: any): Observable<PaginatedResponse<Quotation>> {
+  getQuotations(params: { page?: number; per_page?: number; search?: string; status?: string; lead_id?: number } = {}): Observable<ApiResponse<Quotation[]>> {
     let httpParams = new HttpParams();
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key]) {
-          httpParams = httpParams.set(key, params[key]);
-        }
-      });
-    }
-    return this.http.get<PaginatedResponse<Quotation>>(this.apiUrl, { params: httpParams });
+    if (params.page) httpParams = httpParams.set('page', params.page);
+    if (params.per_page) httpParams = httpParams.set('per_page', params.per_page);
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.status) httpParams = httpParams.set('status', params.status);
+    if (params.lead_id) httpParams = httpParams.set('lead_id', params.lead_id);
+
+    return this.http.get<ApiResponse<Quotation[]>>(this.apiUrl, { params: httpParams });
   }
 
-  createQuotation(data: CreateQuotationDto): Observable<ApiResponse<Quotation>> {
-    return this.http.post<ApiResponse<Quotation>>(this.apiUrl, data);
+  getQuotation(id: number): Observable<Quotation> {
+    return this.http.get<ApiResponse<Quotation>>(`${this.apiUrl}/${id}`).pipe(
+      map(res => res.data)
+    );
   }
 
-  updateQuotation(id: number | string, data: any): Observable<ApiResponse<Quotation>> {
-    return this.http.put<ApiResponse<Quotation>>(`${this.apiUrl}/${id}`, data);
+  createQuotation(payload: QuotationPayload): Observable<Quotation> {
+    return this.http.post<ApiResponse<Quotation>>(this.apiUrl, payload).pipe(
+      map(res => res.data)
+    );
   }
 
-  deleteQuotation(id: number): Observable<ApiResponse<null>> {
-    return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
+  updateQuotation(id: number, payload: QuotationPayload): Observable<Quotation> {
+    return this.http.put<ApiResponse<Quotation>>(`${this.apiUrl}/${id}`, payload).pipe(
+      map(res => res.data)
+    );
+  }
+
+  deleteQuotation(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  sendQuotation(id: number): Observable<Quotation> {
+    return this.http.put<ApiResponse<Quotation>>(`${this.apiUrl}/${id}/send`, {}).pipe(
+      map(res => res.data)
+    );
+  }
+
+  acceptQuotation(id: number): Observable<Quotation> {
+    return this.http.put<ApiResponse<Quotation>>(`${this.apiUrl}/${id}/accept`, {}).pipe(
+      map(res => res.data)
+    );
+  }
+
+  rejectQuotation(id: number, reason?: string): Observable<Quotation> {
+    return this.http.put<ApiResponse<Quotation>>(`${this.apiUrl}/${id}/reject`, { reason }).pipe(
+      map(res => res.data)
+    );
+  }
+
+  duplicateQuotation(id: number): Observable<Quotation> {
+    return this.http.post<ApiResponse<Quotation>>(`${this.apiUrl}/${id}/duplicate`, {}).pipe(
+      map(res => res.data)
+    );
+  }
+
+  convertToBooking(id: number): Observable<any> {
+    return this.http.post<ApiResponse<any>>(`${this.apiUrl}/${id}/convert`, {}).pipe(
+      map(res => res.data)
+    );
+  }
+
+  getPdfUrl(id: number): string {
+    return `${this.apiUrl}/${id}/pdf`;
   }
 }
