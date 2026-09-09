@@ -4,85 +4,337 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
-        Leads 
-        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{leadsResource.value()?.data?.length || 0}} Total</span>
+        <i class="bi bi-funnel-fill text-primary"></i> Leads Management 
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{leads().length}} Total</span>
       </h3>
-      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage, track, and assign your incoming leads efficiently.</p>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Track, manage, assign, and view activity history for incoming customer leads.</p>
     </div>
     
-    <div class="d-flex align-items-center gap-3">
-      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <!-- Search Input -->
+      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 240px;">
         <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
           <i class="bi bi-search"></i>
         </span>
-        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search leads..." style="box-shadow: none;">
+        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700"
+               placeholder="Search leads..." style="box-shadow: none;"
+               [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value); onFilterChange()">
       </div>
-      
-      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showAdd()">
+
+      <!-- New Lead Button -->
+      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-3 py-2 fw-semibold shadow-sm"
+              type="button" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showAdd()">
         <i class="bi bi-plus-lg"></i> New Lead
       </button>
+
       @if (authService.hasRole('Super Admin') || authService.hasRole('Manager')) {
-      <button class="btn btn-outline-secondary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button">
-        <i class="bi bi-upload"></i> Import CSV
-      </button>
+        <!-- Auto-Assign Queue Processing Button -->
+        <button class="btn btn-outline-info d-flex align-items-center gap-2 rounded-3 px-3 py-2 fw-semibold shadow-sm"
+                type="button" (click)="processUnassignedQueue()" [disabled]="isProcessingQueue()" title="Trigger Round-Robin Auto-Assignment for Unassigned Queue">
+          <i class="bi bi-diagram-3" *ngIf="!isProcessingQueue()"></i>
+          <span *ngIf="isProcessingQueue()" class="spinner-border spinner-border-sm me-1"></span>
+          Auto-Assign Queue
+        </button>
+
+        <!-- Export CSV Button -->
+        <button class="btn btn-outline-secondary d-flex align-items-center gap-2 rounded-3 px-3 py-2 fw-semibold shadow-sm"
+                type="button" (click)="exportCsv()" title="Export leads to CSV">
+          <i class="bi bi-download"></i> Export CSV
+        </button>
+
+        <!-- Import CSV Trigger -->
+        <label class="btn btn-outline-primary d-flex align-items-center gap-2 rounded-3 px-3 py-2 fw-semibold shadow-sm mb-0 cursor-pointer"
+               title="Import leads from CSV file" style="cursor: pointer;">
+          <i class="bi bi-upload" *ngIf="!isImporting()"></i>
+          <span *ngIf="isImporting()" class="spinner-border spinner-border-sm me-1"></span>
+          Import CSV
+          <input type="file" accept=".csv" class="d-none" (change)="onFileSelected($event)">
+        </label>
+
+        <!-- Download Sample CSV -->
+        <button class="btn btn-link text-muted p-1" (click)="downloadSampleCsv()" title="Download sample import template">
+          <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+        </button>
       }
     </div>
   </div>
 
-  <!-- Table Card -->
-  <app-data-table [dataList]="leadsResource.value()?.data || []" [pagination]="true">
-    
-    <ng-template appColumn="name" header="Name & Contact" let-row>
-      <div class="d-flex flex-column">
-        <span class="text-slate-800 fw-bold">{{row.name}}</span>
-        <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-telephone-fill me-1 text-slate-400"></i>{{row.phone}}</span>
-      </div>
-    </ng-template>
-    
-    <ng-template appColumn="source" header="Source" let-row>
-      <span class="badge bg-light text-dark border border-secondary-subtle px-2 py-1 fw-medium"><i class="bi bi-globe me-1"></i> {{row.source}}</span>
-    </ng-template>
+  <!-- Alerts -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
 
-    <ng-template appColumn="destination" header="Trip Details" let-row>
-      <div class="d-flex flex-column">
-        <span class="text-slate-700 fw-medium">{{row.destination}}</span>
-        <span class="text-slate-500" style="font-size: 0.8rem;"><i class="bi bi-calendar-event me-1"></i>{{row.travel_date}}</span>
-      </div>
-    </ng-template>
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
 
-    <ng-template appColumn="assigned_to" header="Assigned To" let-row>
-      <div *ngIf="row.assigned_to" class="d-flex align-items-center gap-2">
-        <img [src]="'https://ui-avatars.com/api/?name=' + row.assigned_to?.name + '&background=f1f5f9&color=64748b'" alt="Avatar" class="rounded-circle" width="28" height="28">
-        <span class="text-slate-700 fw-medium" style="font-size: 0.9rem;">{{row.assigned_to?.name}}</span>
-      </div>
-      <span *ngIf="!row.assigned_to" class="text-muted fst-italic" style="font-size: 0.85rem;">Unassigned</span>
-    </ng-template>
+  <!-- Filters Toolbar -->
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body p-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-funnel me-1"></i> Status:</span>
+            <select class="form-select form-select-sm border-light-subtle" [value]="selectedStatus()" (change)="selectedStatus.set($any($event.target).value); onFilterChange()">
+              <option value="">All Statuses</option>
+              @for (st of statusOptions; track st.key) {
+                <option [value]="st.key">{{ st.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
 
-    <ng-template appColumn="status" header="Status" let-row>
-      <span class="badge bg-info-subtle text-info rounded-pill px-3 py-2 fw-bold" style="letter-spacing: 0.3px;">
-        <span class="d-inline-block rounded-circle bg-info me-1" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
-        {{row.status | titlecase}}
-      </span>
-    </ng-template>
+        <div class="col-md-4">
+          <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-broadcast me-1"></i> Source:</span>
+            <select class="form-select form-select-sm border-light-subtle" [value]="selectedSource()" (change)="selectedSource.set($any($event.target).value); onFilterChange()">
+              <option value="">All Sources</option>
+              <option value="Meta Facebook/Instagram Ads">Meta Facebook / Instagram Ads</option>
+              <option value="Google Search Ads">Google Search Ads</option>
+              <option value="WhatsApp Direct">WhatsApp Direct</option>
+              <option value="Website Form">Website Form</option>
+              <option value="CSV Import">CSV Import</option>
+            </select>
+          </div>
+        </div>
 
-    <ng-template appColumn="id" header="Actions" [sortable]="false" let-row>
-      <div class="d-flex justify-content-start gap-1">
-        <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showEdit(row)" title="Edit">
-          <i class="bi bi-pencil-square fs-6"></i>
-        </button>
         @if (authService.hasRole('Super Admin') || authService.hasRole('Manager')) {
-        <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" (click)="confirmDelete(row)">
-          <i class="bi bi-trash3 fs-6"></i>
+          <div class="col-md-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-person-badge me-1"></i> Staff:</span>
+              <select class="form-select form-select-sm border-light-subtle" [value]="selectedStaff()" (change)="selectedStaff.set($any($event.target).value); onFilterChange()">
+                <option value="">All Staff / Leads</option>
+                <option value="unassigned">Unassigned Pool</option>
+                @for (user of staffUsers(); track user.id) {
+                  <option [value]="user.id">{{ user.name }} ({{ user.role?.name || 'Staff' }})</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+
+        <div class="col-md-2 text-end">
+          <button class="btn btn-sm btn-light text-muted" (click)="clearFilters()" *ngIf="searchQuery() || selectedStatus() || selectedSource() || selectedStaff()">
+            <i class="bi bi-x-circle me-1"></i> Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading leads...</span>
+      </div>
+    </div>
+  } @else {
+    <!-- Table Card -->
+    <app-data-table [dataList]="leads()" [pagination]="true">
+      
+      <ng-template appColumn="name" header="Name & Contact" let-row>
+        <div class="d-flex flex-column">
+          <span class="text-slate-800 fw-bold">{{row.name || row.customer_name}}</span>
+          <span class="text-slate-500 small"><i class="bi bi-telephone-fill me-1 text-slate-400"></i>{{row.phone || row.customer_phone}}</span>
+          <span *ngIf="row.email || row.customer_email" class="text-muted small"><i class="bi bi-envelope me-1"></i>{{row.email || row.customer_email}}</span>
+        </div>
+      </ng-template>
+      
+      <ng-template appColumn="campaign_source" header="Channel & Source" let-row>
+        <div class="d-flex flex-column gap-1">
+          <span class="badge bg-light text-dark border px-2 py-1 fw-medium align-self-start">
+            <i class="bi me-1" [ngClass]="getSourceIcon(row.campaign_source || row.source)"></i>
+            {{ row.campaign_source || row.source || 'Direct' }}
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template appColumn="destination" header="Trip Details" let-row>
+        <div class="d-flex flex-column">
+          <span class="text-slate-700 fw-medium">{{row.destination || 'Not Specified'}}</span>
+          <span class="text-slate-500 small" *ngIf="row.travel_date"><i class="bi bi-calendar-event me-1"></i>{{row.travel_date}}</span>
+          <span class="text-muted small" *ngIf="row.budget"><i class="bi bi-currency-rupee me-1"></i>₹{{row.budget}}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appColumn="assigned_to" header="Assigned Staff" let-row>
+        <div class="d-flex align-items-center gap-2">
+          @if (authService.hasRole('Super Admin') || authService.hasRole('Manager')) {
+            <select class="form-select form-select-sm border-0 bg-light text-slate-700 fw-medium"
+                    style="max-width: 175px; font-size: 0.85rem;"
+                    [value]="getAssignedUserId(row)"
+                    (change)="assignLeadQuick(row.id, $any($event.target).value)">
+              <option value="" [selected]="!getAssignedUserId(row)">Unassigned</option>
+              @for (user of staffUsers(); track user.id) {
+                <option [value]="'' + user.id" [selected]="isUserAssigned(row, user.id)">{{ user.name }} ({{ user.role?.name || 'Staff' }})</option>
+              }
+            </select>
+          } @else {
+            <span *ngIf="row.assigned_to || row.assigned_user" class="text-slate-700 fw-medium small">
+              <i class="bi bi-person-circle me-1 text-primary"></i> {{ getAssignedUserName(row) }}
+            </span>
+            <span *ngIf="!row.assigned_to && !row.assigned_user" class="text-muted fst-italic small">Unassigned</span>
+          }
+        </div>
+      </ng-template>
+
+      <ng-template appColumn="status" header="Status" let-row>
+        <span class="badge rounded-pill px-3 py-2 fw-bold" [ngClass]="getStatusBadge(row.status)">
+          {{ row.status | titlecase }}
+        </span>
+      </ng-template>
+
+      <ng-template appColumn="id" header="Actions" [sortable]="false" let-row>
+        <div class="d-flex justify-content-start gap-1">
+          <!-- Activity Trail Drawer Trigger -->
+          <button class="btn btn-sm btn-light text-primary hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center"
+                  style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadActivityOffcanvas"
+                  (click)="openActivityDrawer(row)" title="Activity & Comment Trail">
+            <i class="bi bi-chat-square-text fs-6"></i>
+          </button>
+
+          <!-- Edit Button -->
+          <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#leadFormOffcanvas" (click)="showEdit(row)" title="Edit">
+            <i class="bi bi-pencil-square fs-6"></i>
+          </button>
+          
+          @if (authService.hasRole('Super Admin') || authService.hasRole('Manager')) {
+            <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteConfirmModal" (click)="confirmDelete(row)">
+              <i class="bi bi-trash3 fs-6"></i>
+            </button>
+          }
+        </div>
+      </ng-template>
+
+    </app-data-table>
+  }
+</div>
+
+<!-- Activity & Comment Trail Offcanvas (Drawer) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="leadActivityOffcanvas" style="width: 600px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
+  <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+        <i class="bi bi-chat-square-quote fs-5"></i>
+      </div>
+      <div>
+        <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">
+          {{ activeActivityLead()?.name || activeActivityLead()?.customer_name }}
+        </h5>
+        <small class="text-slate-500">
+          Activity & Threaded Comment Trail (Phone: {{ activeActivityLead()?.phone || activeActivityLead()?.customer_phone }})
+        </small>
+      </div>
+    </div>
+    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+
+  <div class="offcanvas-body p-4 bg-white d-flex flex-column" style="overflow-y: auto;">
+    
+    <!-- Comment Entry Box -->
+    <div class="card border-0 bg-slate-50 rounded-4 p-3 mb-4 shadow-sm">
+      <h6 class="fw-bold text-slate-800 mb-2 small d-flex align-items-center gap-1">
+        <i class="bi bi-pencil-square text-primary"></i> Add Activity Comment / Remark
+      </h6>
+      <textarea class="form-control border-0 bg-white shadow-none text-slate-700 py-2 mb-2"
+                rows="3" placeholder="Enter call discussion remarks, customer feedback, or manager guidance..."
+                [value]="commentText()" (input)="commentText.set($any($event.target).value)"></textarea>
+      
+      <div class="d-flex align-items-center justify-content-between">
+        @if (isManagerOrAdmin()) {
+          <div class="form-check form-switch mb-0">
+            <input class="form-check-input" type="checkbox" id="internalNoteSwitch"
+                   [checked]="isInternalNote()" (change)="isInternalNote.set($any($event.target).checked)">
+            <label class="form-check-label text-purple fw-semibold small" for="internalNoteSwitch">
+              <i class="bi bi-shield-lock me-1"></i> Internal Manager Note (Hidden from Sales Reps)
+            </label>
+          </div>
+        } @else {
+          <div></div>
+        }
+
+        <button type="button" class="btn btn-primary btn-sm px-4 py-1.5 fw-semibold shadow-sm d-flex align-items-center gap-2"
+                [disabled]="!commentText().trim()" (click)="submitComment()">
+          <i class="bi bi-send-fill"></i> Post Comment
         </button>
+      </div>
+    </div>
+
+    <!-- Timeline Activity Feed -->
+    <h6 class="fw-bold text-slate-800 mb-3 border-bottom pb-2">Chronological Activity History</h6>
+
+    @if (isLoadingActivities()) {
+      <div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">Loading activities...</span>
+        </div>
+      </div>
+    } @else {
+      <div class="timeline position-relative ps-3">
+        @for (act of activities(); track act.id) {
+          <div class="timeline-item mb-4 position-relative border-start border-2 ps-3"
+               [ngClass]="{
+                 'border-primary': act.activity_type === 'comment' && !act.is_internal,
+                 'border-purple': act.is_internal,
+                 'border-info': act.activity_type === 'reassignment_handoff',
+                 'border-success': act.activity_type === 'follow_up_completed',
+                 'border-warning': act.activity_type === 'follow_up_scheduled'
+               }">
+
+            <div class="d-flex align-items-center justify-content-between mb-1">
+              <span class="fw-bold text-slate-800 small d-flex align-items-center gap-1">
+                {{ act.user?.name || 'System' }}
+                <span class="badge bg-light text-slate-600 border fw-normal" style="font-size: 0.7rem;">
+                  {{ act.user?.role || 'Staff' }}
+                </span>
+              </span>
+              <span class="text-slate-400 text-end" style="font-size: 0.75rem;">
+                {{ act.created_at | date:'short' }}
+              </span>
+            </div>
+
+            <!-- Internal Note Banner -->
+            @if (act.is_internal) {
+              <div class="alert alert-warning py-1.5 px-3 rounded-3 mb-2 small d-flex align-items-center gap-2 fw-medium border-0" style="background-color: #fff3cd; color: #664d03;">
+                <i class="bi bi-shield-lock-fill text-warning"></i> Internal Manager Note
+              </div>
+            }
+
+            <!-- Handoff Banner -->
+            @if (act.activity_type === 'reassignment_handoff') {
+              <div class="alert alert-info py-1.5 px-3 rounded-3 mb-2 small d-flex align-items-center gap-2 fw-medium border-0">
+                <i class="bi bi-arrow-left-right text-info"></i> Leave Coverage Re-assignment Handoff
+              </div>
+            }
+
+            <p class="text-slate-700 mb-1 small">{{ act.description }}</p>
+
+            @if (act.comment) {
+              <div class="bg-light p-2.5 rounded-3 text-slate-800 small border-start border-3 border-secondary">
+                "{{ act.comment }}"
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="text-center py-4 text-slate-400">
+            <i class="bi bi-clock-history display-6 d-block mb-2 text-slate-300"></i>
+            <span class="small">No activity history recorded for this lead yet.</span>
+          </div>
         }
       </div>
-    </ng-template>
-
-  </app-data-table>
+    }
+  </div>
 </div>
 
 <!-- Add/Edit Lead Offcanvas (Drawer) -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="leadFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
+<div class="offcanvas offcanvas-end" tabindex="-1" id="leadFormOffcanvas" style="width: 850px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
   
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-3">
@@ -91,7 +343,7 @@
       </div>
       <div>
         <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ view() === 'add' ? 'Create New Lead' : 'Edit Lead Details' }}</h5>
-        <small class="text-slate-500">{{ view() === 'add' ? 'Enter the details of your new lead below.' : 'Update the lead information.' }}</small>
+        <small class="text-slate-500">{{ view() === 'add' ? 'Enter the details of your new lead below.' : 'Update lead information and assignment.' }}</small>
       </div>
     </div>
     <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -107,7 +359,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Full Name <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
-          <input type="text" formControlName="name" class="form-control bg-light border-0 py-2" placeholder="e.g. Rajesh" [ngClass]="{'border border-danger': leadForm.get('name')?.invalid && leadForm.get('name')?.touched}">
+          <input type="text" formControlName="name" class="form-control bg-light border-0 py-2" placeholder="e.g. Rajesh Kumar" [ngClass]="{'border border-danger': leadForm.get('name')?.invalid && leadForm.get('name')?.touched}">
         </div>
         @if (leadForm.get('name')?.invalid && leadForm.get('name')?.touched) {
           <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Full Name is required</div>
@@ -118,7 +370,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Phone Number <span class="text-danger">*</span></label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-telephone"></i></span>
-          <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2" placeholder="e.g. 7503301775" [ngClass]="{'border border-danger': leadForm.get('phone')?.invalid && leadForm.get('phone')?.touched}">
+          <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2" placeholder="e.g. 9811122334" [ngClass]="{'border border-danger': leadForm.get('phone')?.invalid && leadForm.get('phone')?.touched}">
         </div>
         @if (leadForm.get('phone')?.invalid && leadForm.get('phone')?.touched) {
           <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Phone Number is required</div>
@@ -131,9 +383,6 @@
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-envelope"></i></span>
           <input type="email" formControlName="email" class="form-control bg-light border-0 py-2" placeholder="e.g. rajesh@example.com" [ngClass]="{'border border-danger': leadForm.get('email')?.invalid && leadForm.get('email')?.touched}">
         </div>
-        @if (leadForm.get('email')?.invalid && leadForm.get('email')?.touched) {
-          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Valid Email Address is required</div>
-        }
       </div>
 
       <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Trip Requirements</h6></div>
@@ -143,7 +392,7 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Destination</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
-          <input type="text" formControlName="destination" class="form-control bg-light border-0 py-2" placeholder="e.g. Uttarakhand">
+          <input type="text" formControlName="destination" class="form-control bg-light border-0 py-2" placeholder="e.g. Kashmir / Goa / Himachal">
         </div>
       </div>
       <!-- Travel Date -->
@@ -167,42 +416,51 @@
         <label class="form-label text-slate-700 fw-medium mb-1 small">Approx. Budget</label>
         <div class="input-group">
           <span class="input-group-text bg-light border-0 text-muted">₹</span>
-          <input type="number" formControlName="budget" class="form-control bg-light border-0 py-2" placeholder="20000.00">
+          <input type="number" formControlName="budget" class="form-control bg-light border-0 py-2" placeholder="25000.00">
         </div>
       </div>
 
-      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Lead Tracking</h6></div>
+      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Lead Tracking & Assignment</h6></div>
 
-      <!-- Source -->
+      <!-- Source / Campaign Source -->
       <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Lead Source</label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Campaign Source</label>
         <select formControlName="source" class="form-select bg-light border-0 py-2 text-slate-600">
-          <option>Website</option>
-          <option>Referral</option>
-          <option>Walk-in</option>
+          <option value="Website">Website Form</option>
+          <option value="Meta Facebook/Instagram Ads">Meta Facebook / Instagram Ads</option>
+          <option value="Google Search Ads">Google Search Ads</option>
+          <option value="WhatsApp Direct">WhatsApp Direct</option>
+          <option value="CSV Import">CSV Import</option>
+          <option value="Referral">Referral</option>
+          <option value="Walk-in">Walk-in</option>
         </select>
       </div>
+
+      <!-- Staff Assignment -->
       <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Assigned To</label>
-        <select formControlName="assigned_to" class="form-select bg-light border-0 py-2 text-slate-600" [attr.disabled]="(authService.hasRole('Super Admin') || authService.hasRole('Manager')) ? null : ''">
-          <option [ngValue]="null">Select...</option>
-          <option [ngValue]="1">Super Admin</option>
-          <option [ngValue]="2">Agent A</option>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Assigned Staff</label>
+        <select formControlName="assigned_to" class="form-select bg-light border-0 py-2 text-slate-600"
+                [attr.disabled]="(authService.hasRole('Super Admin') || authService.hasRole('Manager')) ? null : ''">
+          <option [ngValue]="null">Select Staff...</option>
+          @for (user of staffUsers(); track user.id) {
+            <option [ngValue]="user.id">{{ user.name }} ({{ user.role?.name || 'Staff' }})</option>
+          }
         </select>
       </div>
+
+      <!-- Status -->
       <div class="col-md-4">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Lead Status</label>
         <select formControlName="status" class="form-select bg-light border-0 py-2 text-slate-600">
-          <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="confirmed">Confirmed</option>
-          <option value="lost">Lost</option>
+          @for (st of statusOptions; track st.key) {
+            <option [value]="st.key">{{ st.label }}</option>
+          }
         </select>
       </div>
 
       <div class="col-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Special Notes / Requirements</label>
-        <textarea formControlName="notes" class="form-control bg-light border-0 py-3" rows="3" placeholder="Enter any extra details or requirements here..."></textarea>
+        <textarea formControlName="notes" class="form-control bg-light border-0 py-3" rows="3" placeholder="Enter any extra lead details, customer requirements or activity notes..."></textarea>
       </div>
     </form>
   </div>
@@ -227,7 +485,7 @@
           <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
         </div>
         <h4 class="fw-bold text-slate-800 mb-2">Delete Lead?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to delete <strong *ngIf="leadToDelete" class="text-slate-700">{{leadToDelete.name}}</strong>? This action cannot be undone and all associated data will be permanently lost.</p>
+        <p class="text-slate-500 mb-0">Are you sure you want to delete <strong *ngIf="leadToDelete()" class="text-slate-700">{{leadToDelete()?.name}}</strong>? This action cannot be undone.</p>
       </div>
       <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
         <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>

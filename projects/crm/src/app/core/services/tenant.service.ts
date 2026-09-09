@@ -22,6 +22,19 @@ export interface TenantSubscription {
   is_expiring_soon: boolean;
 }
 
+export interface CompanyIntegrationDetail {
+  id?: number;
+  provider?: string;
+  is_active?: boolean;
+  verify_token?: string;
+  webhook_secret?: string;
+  access_token?: string;
+  app_id?: string;
+  app_secret?: string;
+  account_id?: string;
+  phone_number_id?: string;
+}
+
 export interface Tenant {
   id: number;
   company_name: string;
@@ -32,6 +45,17 @@ export interface Tenant {
   total_employees: number;
   total_allowed_seats: number;
   employees: TenantEmployee[];
+  integrations?: {
+    meta?: CompanyIntegrationDetail;
+    google?: CompanyIntegrationDetail;
+    whatsapp?: CompanyIntegrationDetail;
+  };
+  webhook_urls?: {
+    meta?: string;
+    google?: string;
+    whatsapp?: string;
+    website?: string;
+  };
 }
 
 @Injectable({

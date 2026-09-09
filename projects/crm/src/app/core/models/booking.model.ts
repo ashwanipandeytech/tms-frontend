@@ -8,6 +8,7 @@ export interface Booking {
   paid_amount: number | string;
   due_amount?: number | string;
   booking_no?: string;
+  operations_id?: number | null;
   status: string;
   created_at?: string;
   updated_at?: string;
@@ -15,6 +16,7 @@ export interface Booking {
   customer?: any;
   lead?: any;
   package?: any;
+  assigned_operations?: any;
 }
 
 export interface CreateBookingDto {

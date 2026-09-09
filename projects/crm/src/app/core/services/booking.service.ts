@@ -33,6 +33,10 @@ export class BookingService {
     return this.http.put<ApiResponse<Booking>>(`${this.apiUrl}/${id}`, data);
   }
 
+  assignOperations(id: number | string, operationsId: number): Observable<ApiResponse<Booking>> {
+    return this.http.put<ApiResponse<Booking>>(`${this.apiUrl}/${id}/assign-operations`, { operations_id: operationsId });
+  }
+
   deleteBooking(id: number | string): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${id}`);
   }

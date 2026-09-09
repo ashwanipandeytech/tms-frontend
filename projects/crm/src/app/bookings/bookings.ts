@@ -4,6 +4,8 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { firstValueFrom } from 'rxjs';
 import { BookingService } from '../core/services/booking.service';
 import { PaymentService } from '../core/services/payment.service';
+import { UserService } from '../core/services/user.service';
+import { User } from '../core/models/user.model';
 import { Booking } from '../core/models/booking.model';
 
 @Component({
@@ -20,6 +22,7 @@ export class BookingsComponent {
   itemToEdit: Booking | null = null;
   paymentModalBooking: Booking | null = null;
   paymentForm: FormGroup;
+  staffUsers = signal<User[]>([]);
 
   bookingsResource = resource({
     loader: () => firstValueFrom(this.bookingService.getBookings())
@@ -28,8 +31,10 @@ export class BookingsComponent {
   constructor(
     private bookingService: BookingService,
     private paymentService: PaymentService,
+    private userService: UserService,
     private fb: FormBuilder
   ) {
+    this.loadStaffUsers();
     this.bookingForm = this.fb.group({
       lead_id: [null],
       customer_id: [null],
@@ -47,6 +52,26 @@ export class BookingsComponent {
       txn_reference: ['', Validators.required],
       paid_at: ['', Validators.required]
     });
+  }
+
+  loadStaffUsers() {
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        if (res && res.data) {
+          this.staffUsers.set(res.data);
+        }
+      }
+    });
+  }
+
+  async assignOperationsQuick(bookingId: number, opsUserId: any) {
+    if (!opsUserId) return;
+    try {
+      await firstValueFrom(this.bookingService.assignOperations(bookingId, parseInt(opsUserId, 10)));
+      this.bookingsResource.reload();
+    } catch (err) {
+      console.error('Failed to assign operations fulfillment team', err);
+    }
   }
 
   showList() { this.view.set('list'); }

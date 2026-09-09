@@ -38,6 +38,7 @@
             <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Paid</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Due</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Ops Fulfillment</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
           </tr>
         </thead>
@@ -80,6 +81,17 @@
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
                   {{item.status | titlecase}}
                 </span>
+              </td>
+              <td class="py-3">
+                <select class="form-select form-select-sm border-0 bg-light text-slate-700 fw-medium"
+                        style="max-width: 160px; font-size: 0.85rem;"
+                        [value]="item.operations_id || ''"
+                        (change)="assignOperationsQuick(item.id, $any($event.target).value)">
+                  <option value="">Auto / Unassigned</option>
+                  @for (user of staffUsers(); track user.id) {
+                    <option [value]="user.id">{{ user.name }} ({{ user.role?.name || 'Staff' }})</option>
+                  }
+                </select>
               </td>
               <td class="py-3 text-end pe-4">
                 <div class="d-flex justify-content-end gap-1">

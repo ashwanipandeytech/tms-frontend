@@ -40,7 +40,9 @@ export class UsersComponent implements OnInit {
       password: ['', Validators.required],
       password_confirmation: ['', Validators.required],
       role_id: [null, Validators.required],
-      status: ['active', Validators.required]
+      status: ['active', Validators.required],
+      max_daily_leads: [20, [Validators.required, Validators.min(1), Validators.max(1000)]],
+      auto_assign_enabled: [true]
     }, { validators: this.passwordMatchValidator });
   }
 
@@ -96,7 +98,7 @@ export class UsersComponent implements OnInit {
 
   showAdd() {
     this.editingUserId.set(null);
-    this.userForm.reset({ status: 'active' });
+    this.userForm.reset({ status: 'active', max_daily_leads: 20, auto_assign_enabled: true });
     this.userForm.get('password')?.setValidators([Validators.required]);
     this.userForm.get('password')?.updateValueAndValidity();
     this.userForm.get('password_confirmation')?.setValidators([Validators.required]);
@@ -113,7 +115,9 @@ export class UsersComponent implements OnInit {
       password: '',
       password_confirmation: '',
       role_id: user.role?.id || null,
-      status: user.status || 'active'
+      status: user.status || 'active',
+      max_daily_leads: user.max_daily_leads ?? 20,
+      auto_assign_enabled: user.auto_assign_enabled ?? true
     });
     this.userForm.get('password')?.clearValidators();
     this.userForm.get('password')?.updateValueAndValidity();

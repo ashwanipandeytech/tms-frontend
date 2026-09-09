@@ -171,3 +171,19 @@ a:hover { filter: brightness(0.8); }
 .spinner-border.text-primary, .spinner-grow.text-primary {
   color: var(--bs-primary) !important;
 }
+
+/* Custom Status Badge Colors */
+.bg-indigo {
+  background-color: #6366f1 !important;
+  color: #ffffff !important;
+}
+
+.bg-orange {
+  background-color: #f97316 !important;
+  color: #ffffff !important;
+}
+
+.bg-purple {
+  background-color: #8b5cf6 !important;
+  color: #ffffff !important;
+}

@@ -29,6 +29,21 @@
           class="bi bi-shield-lock me-1"></i> {{row.role?.name}}</span>
     </ng-template>
 
+    <ng-template appColumn="max_daily_leads" header="Daily Lead Cap" let-row>
+      <span class="badge bg-light text-slate-700 border px-2.5 py-1.5 fw-medium" style="font-size: 0.82rem;">
+        <i class="bi bi-speedometer2 me-1 text-primary"></i> {{row.max_daily_leads ?? 20}} / day
+      </span>
+    </ng-template>
+
+    <ng-template appColumn="auto_assign_enabled" header="Auto-Assign" let-row>
+      <span class="badge px-2.5 py-1.5 fw-medium"
+        [ngClass]="row.auto_assign_enabled ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle'"
+        style="font-size: 0.82rem;">
+        <i class="bi" [ngClass]="row.auto_assign_enabled ? 'bi-check-circle-fill me-1' : 'bi-x-circle me-1'"></i>
+        {{row.auto_assign_enabled ? 'Enabled' : 'Disabled'}}
+      </span>
+    </ng-template>
+
     <ng-template appColumn="status" header="Status" let-row>
       <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 fw-bold">Active</span>
     </ng-template>
@@ -111,6 +126,25 @@
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </select>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Max Daily Lead Cap (per day)</label>
+        <div class="input-group">
+          <span class="input-group-text bg-light border-0"><i class="bi bi-speedometer2 text-primary"></i></span>
+          <input type="number" formControlName="max_daily_leads" class="form-control bg-light border-0 py-2" placeholder="e.g. 20" min="1" max="1000">
+        </div>
+        <small class="text-muted" style="font-size: 0.78rem;">Default cap is 20 leads/day per rep. Authorized staff can override manually anytime.</small>
+      </div>
+
+      <div class="col-12">
+        <div class="form-check form-switch p-0 d-flex align-items-center justify-content-between rounded-3 border p-3 bg-light-subtle">
+          <div>
+            <label class="form-check-label fw-semibold text-slate-800 me-2" for="autoAssignSwitch">Enable Auto-Assignment</label>
+            <div class="text-slate-500" style="font-size: 0.78rem;">Include user in automatic Round-Robin distribution</div>
+          </div>
+          <input class="form-check-input ms-0" type="checkbox" role="switch" id="autoAssignSwitch" formControlName="auto_assign_enabled" style="width: 2.5em; height: 1.25em;">
+        </div>
       </div>
 
     </form>

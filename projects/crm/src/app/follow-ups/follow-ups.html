@@ -4,50 +4,98 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
-        Follow-ups
-        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{followUpsResource.value()?.data?.length || 0}} Total</span>
+        Follow-ups & Reminders
+        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">
+          {{followUpsData()?.data?.length || 0}} Items
+        </span>
       </h3>
-      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Keep track of your calls, meetings, and lead interactions.</p>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage daily call queues, customer follow-ups, and reassignment coverage.</p>
     </div>
 
     <div class="d-flex align-items-center gap-3">
-      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
+      <!-- Search Input -->
+      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 240px;">
         <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
           <i class="bi bi-search"></i>
         </span>
-        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search follow-ups..." style="box-shadow: none;">
+        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search follow-ups..." (input)="onSearch($event)" style="box-shadow: none;">
       </div>
 
+      <!-- Staff Filter for Managers -->
+      @if (isManagerOrAdmin()) {
+        <select class="form-select border-0 shadow-sm rounded-3 py-2 text-slate-700 fw-medium" style="width: 180px; box-shadow: none;" (change)="onStaffFilter($event)">
+          <option value="">All Team Members</option>
+          @for (u of usersList(); track u.id) {
+            <option [value]="u.id">{{u.name}}</option>
+          }
+        </select>
+      }
+
       <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#followUpFormOffcanvas" (click)="showAdd()">
-        <i class="bi bi-plus-lg"></i> New Follow-up
+        <i class="bi bi-plus-lg"></i> Schedule Follow-up
       </button>
     </div>
+  </div>
+
+  <!-- Status Tabs -->
+  <div class="d-flex border-bottom mb-4 gap-2">
+    <button class="btn btn-link text-decoration-none px-4 py-2 fw-semibold border-bottom border-2 rounded-0 transition-all"
+      [ngClass]="activeTab() === 'due_today' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('due_today')">
+      <i class="bi bi-clock-history me-1"></i> Due Today
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2 fw-semibold border-bottom border-2 rounded-0 transition-all position-relative"
+      [ngClass]="activeTab() === 'overdue' ? 'border-danger text-danger' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('overdue')">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i> Overdue
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2 fw-semibold border-bottom border-2 rounded-0 transition-all"
+      [ngClass]="activeTab() === 'upcoming' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('upcoming')">
+      <i class="bi bi-calendar-event me-1"></i> Upcoming
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2 fw-semibold border-bottom border-2 rounded-0 transition-all"
+      [ngClass]="activeTab() === 'completed' ? 'border-success text-success' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('completed')">
+      <i class="bi bi-check-circle-fill me-1"></i> Completed
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2 fw-semibold border-bottom border-2 rounded-0 transition-all"
+      [ngClass]="activeTab() === 'all' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('all')">
+      All Follow-ups
+    </button>
   </div>
 
   <!-- Table Card -->
   <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
     <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" style="min-width: 900px;">
+      <table class="table table-hover align-middle mb-0" style="min-width: 960px;">
         <thead class="bg-slate-50">
           <tr>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Lead Name</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Schedule</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Lead & Contact</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Scheduled Date & Time</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Type</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Remarks</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Priority</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Assigned Rep</th>
             <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
+            <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Quick Actions</th>
           </tr>
         </thead>
         <tbody class="border-top-0">
-          @for (item of followUpsResource.value()?.data || []; track item) {
+          @for (item of followUpsData()?.data || []; track item.id) {
             <tr class="border-bottom border-light align-middle group">
               <td class="ps-4 py-3">
-                <span class="text-slate-800 fw-bold">{{item.lead?.name || item.lead}}</span>
+                <div class="d-flex flex-column">
+                  <span class="text-slate-800 fw-bold fs-6">{{getLeadDisplayName(item)}}</span>
+                  @if (item.lead?.customer_phone || item.lead?.phone) {
+                    <span class="text-slate-500 small"><i class="bi bi-telephone me-1 text-slate-400"></i>{{item.lead?.customer_phone || item.lead?.phone}}</span>
+                  }
+                </div>
               </td>
               <td class="py-3">
                 <div class="d-flex flex-column">
                   <span class="text-slate-700 fw-medium"><i class="bi bi-calendar-event me-2 text-slate-400"></i>{{item.follow_up_date}}</span>
-                  <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-clock me-2 text-slate-400"></i>{{item.follow_up_time}}</span>
+                  <span class="text-slate-500" style="font-size: 0.85rem;"><i class="bi bi-clock me-2 text-slate-400"></i>{{item.follow_up_time || '10:00'}}</span>
                 </div>
               </td>
               <td class="py-3">
@@ -59,55 +107,208 @@
                 </div>
               </td>
               <td class="py-3">
-                <span class="text-slate-600 text-truncate d-inline-block" style="max-width: 250px;" title="{{item.remarks}}">{{item.remarks}}</span>
+                <span class="badge rounded-pill px-2.5 py-1 text-uppercase" [ngClass]="{
+                  'bg-danger-subtle text-danger border border-danger-subtle': item.priority === 'urgent' || item.priority === 'high',
+                  'bg-warning-subtle text-warning border border-warning-subtle': item.priority === 'medium',
+                  'bg-light text-slate-600 border': item.priority === 'low' || !item.priority
+                }" style="font-size: 0.7rem; letter-spacing: 0.5px;">
+                  {{item.priority || 'medium'}}
+                </span>
+              </td>
+              <td class="py-3">
+                <span class="text-slate-700 fw-medium">{{item.assigned_user?.name || 'Unassigned'}}</span>
               </td>
               <td class="py-3">
                 <span class="badge rounded-pill px-3 py-2 fw-bold"
                     [ngClass]="{
-                      'bg-success-subtle text-success': item.status === 'done',
+                      'bg-success-subtle text-success': item.status === 'completed' || item.status === 'done',
                       'bg-warning-subtle text-warning': item.status === 'pending',
-                      'bg-danger-subtle text-danger': item.status === 'missed'
+                      'bg-danger-subtle text-danger': item.status === 'overdue' || item.status === 'missed',
+                      'bg-info-subtle text-info': item.status === 'rescheduled'
                     }" style="letter-spacing: 0.3px;">
                   <span class="d-inline-block rounded-circle me-1"
                       [ngClass]="{
-                        'bg-success': item.status === 'done',
+                        'bg-success': item.status === 'completed' || item.status === 'done',
                         'bg-warning': item.status === 'pending',
-                        'bg-danger': item.status === 'missed'
+                        'bg-danger': item.status === 'overdue' || item.status === 'missed',
+                        'bg-info': item.status === 'rescheduled'
                       }" style="width: 6px; height: 6px; margin-bottom: 1px;"></span>
                   {{item.status | titlecase}}
                 </span>
               </td>
               <td class="py-3 text-end pe-4">
                 <div class="d-flex justify-content-end gap-1">
-                  <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#followUpFormOffcanvas" (click)="showEdit(item)" title="Edit">
+                  @if (item.status !== 'completed' && item.status !== 'done') {
+                    <!-- Complete Action -->
+                    <button class="btn btn-sm btn-light text-success hover-bg-success hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center"
+                      style="width: 34px; height: 34px;" title="Mark Completed" data-bs-toggle="modal" data-bs-target="#completeFollowUpModal" (click)="openCompleteModal(item)">
+                      <i class="bi bi-check-lg fs-5"></i>
+                    </button>
+                    <!-- Reschedule Action -->
+                    <button class="btn btn-sm btn-light text-primary hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center"
+                      style="width: 34px; height: 34px;" title="Reschedule" data-bs-toggle="modal" data-bs-target="#rescheduleFollowUpModal" (click)="openRescheduleModal(item)">
+                      <i class="bi bi-arrow-repeat fs-6"></i>
+                    </button>
+                  }
+                  @if (isManagerOrAdmin() && item.lead_id) {
+                    <!-- Reassign Handoff Action -->
+                    <button class="btn btn-sm btn-light text-purple hover-bg-purple hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center"
+                      style="width: 34px; height: 34px;" title="Re-assign Lead & Follow-ups (Leave Coverage)" data-bs-toggle="modal" data-bs-target="#reassignHandoffModal" (click)="openReassignModal(item)">
+                      <i class="bi bi-person-gear fs-6"></i>
+                    </button>
+                  }
+                  <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" data-bs-toggle="offcanvas" data-bs-target="#followUpFormOffcanvas" (click)="showEdit(item)" title="Edit">
                     <i class="bi bi-pencil-square fs-6"></i>
                   </button>
-                  <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteFollowUpModal" (click)="confirmDelete(item)">
+                  <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteFollowUpModal" (click)="confirmDelete(item)">
                     <i class="bi bi-trash3 fs-6"></i>
                   </button>
                 </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <i class="bi bi-calendar-check text-slate-300 display-4 d-block mb-3"></i>
+                <h6 class="text-slate-600 fw-bold">No follow-ups found</h6>
+                <p class="text-slate-400 small mb-0">Try changing your tab filter or search criteria.</p>
               </td>
             </tr>
           }
         </tbody>
       </table>
     </div>
-    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-      <span class="text-slate-500" style="font-size: 0.85rem;">Showing {{(followUpsResource.value()?.data?.length || 0) > 0 ? 1 : 0}} to {{followUpsResource.value()?.data?.length || 0}} of {{followUpsResource.value()?.data?.length || 0}} entries</span>
-      <nav aria-label="Page navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Previous</a></li>
-          <li class="page-item active"><a class="page-link border-0 rounded-2 bg-primary text-white mx-1" href="javascript:void(0)">1</a></li>
-          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Next</a></li>
-        </ul>
-      </nav>
+  </div>
+</div>
+
+<!-- Complete Follow-Up Modal -->
+<div class="modal fade" id="completeFollowUpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light">
+        <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-check-circle-fill text-success"></i> Complete Follow-up
+        </h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form [formGroup]="completeForm">
+          <div class="mb-3">
+            <label class="form-label text-slate-700 fw-medium small">Customer Feedback / Call Outcome <span class="text-danger">*</span></label>
+            <textarea formControlName="outcome" class="form-control bg-light border-0 py-2" rows="3" placeholder="e.g. Customer agreed to 4N/5D Kashmir package, requested itinerary PDF..."></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-slate-700 fw-medium small">Internal Notes / Next Step Remarks</label>
+            <input type="text" formControlName="remarks" class="form-control bg-light border-0 py-2" placeholder="Optional notes for team reference">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 d-flex justify-content-end gap-2 pb-4 px-4">
+        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" [disabled]="completeForm.invalid" data-bs-dismiss="modal" (click)="submitComplete()">
+          <i class="bi bi-check-lg"></i> Mark Completed
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reschedule Follow-Up Modal -->
+<div class="modal fade" id="rescheduleFollowUpModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light">
+        <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-arrow-repeat text-primary"></i> Reschedule Follow-up
+        </h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form [formGroup]="rescheduleForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label text-slate-700 fw-medium small">New Date <span class="text-danger">*</span></label>
+              <input type="date" formControlName="follow_up_date" class="form-control bg-light border-0 py-2">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-slate-700 fw-medium small">New Time</label>
+              <input type="time" formControlName="follow_up_time" class="form-control bg-light border-0 py-2">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-slate-700 fw-medium small">Interaction Type</label>
+              <select formControlName="type" class="form-select bg-light border-0 py-2">
+                <option value="call">Call</option>
+                <option value="email">Email</option>
+                <option value="meeting">Meeting</option>
+                <option value="whatsapp">WhatsApp</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label text-slate-700 fw-medium small">Priority</label>
+              <select formControlName="priority" class="form-select bg-light border-0 py-2">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label text-slate-700 fw-medium small">Reschedule Reason <span class="text-danger">*</span></label>
+              <textarea formControlName="reason" class="form-control bg-light border-0 py-2" rows="2" placeholder="e.g. Customer out of office, requested call tomorrow evening..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 d-flex justify-content-end gap-2 pb-4 px-4">
+        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" [disabled]="rescheduleForm.invalid" data-bs-dismiss="modal" (click)="submitReschedule()">
+          <i class="bi bi-calendar-check"></i> Save Reschedule
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Re-assign Lead Handoff Modal (Leave Coverage) -->
+<div class="modal fade" id="reassignHandoffModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-bottom px-4 py-3 bg-light">
+        <h5 class="fw-bold text-slate-800 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-person-gear text-purple"></i> Re-assign Lead & Follow-ups (Leave Coverage)
+        </h5>
+        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4">
+        <p class="text-slate-500 small mb-3">Re-assigning this lead will automatically transfer all pending and overdue follow-ups to the selected employee, creating an audit log trail.</p>
+        <form [formGroup]="reassignForm">
+          <div class="mb-3">
+            <label class="form-label text-slate-700 fw-medium small">Select New Employee <span class="text-danger">*</span></label>
+            <select formControlName="new_user_id" class="form-select bg-light border-0 py-2">
+              <option [ngValue]="null">Select employee...</option>
+              @for (u of usersList(); track u.id) {
+                <option [value]="u.id">{{u.name}} ({{u.email}})</option>
+              }
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-slate-700 fw-medium small">Re-assignment Reason <span class="text-danger">*</span></label>
+            <textarea formControlName="reason" class="form-control bg-light border-0 py-2" rows="2" placeholder="e.g. Assigned sales rep on sick leave / annual leave for 5 days..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0 d-flex justify-content-end gap-2 pb-4 px-4">
+        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-purple text-white fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" style="background-color: #6f42c1;" [disabled]="reassignForm.invalid" data-bs-dismiss="modal" (click)="submitReassign()">
+          <i class="bi bi-arrow-left-right"></i> Re-assign Lead & Tasks
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Add/Edit Follow-up Offcanvas (Drawer) -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="followUpFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
-
+<div class="offcanvas offcanvas-end" tabindex="-1" id="followUpFormOffcanvas" style="width: 560px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
   <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center gap-3">
       <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -121,84 +322,157 @@
     <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
 
-  <div class="offcanvas-body p-4 p-md-5 bg-white" style="overflow-y: auto;">
+  <div class="offcanvas-body p-4 bg-white" style="overflow-y: auto;">
     <form class="row g-4" [formGroup]="followUpForm">
-
       <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Interaction Details</h6></div>
 
       <!-- Lead -->
-      <div class="col-md-6">
+      <div class="col-md-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Lead <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-person"></i></span>
-          <select class="form-select bg-light border-0 py-2 text-slate-700 fw-medium" formControlName="lead_id" [ngClass]="{'border border-danger': followUpForm.get('lead_id')?.invalid && followUpForm.get('lead_id')?.touched}">
-            <option [ngValue]="null">Select...</option>
-            @for (l of leadsResource.value()?.data || []; track l) {
-              <option [value]="l.id">{{l.name}}</option>
-            }
-          </select>
-        </div>
-        @if (followUpForm.get('lead_id')?.invalid && followUpForm.get('lead_id')?.touched) {
-          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Lead is required</div>
-        }
-      </div>
-      <!-- Type -->
-      <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Interaction Type</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-chat-left-dots"></i></span>
-          <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="type">
-            <option value="call">Call</option>
-            <option value="email">Email</option>
-            <option value="meeting">Meeting</option>
-            <option value="whatsapp">WhatsApp</option>
-          </select>
-        </div>
+        <select class="form-select bg-light border-0 py-2 text-slate-700 fw-medium" formControlName="lead_id" [ngClass]="{'border border-danger': followUpForm.get('lead_id')?.invalid && followUpForm.get('lead_id')?.touched}">
+          <option [ngValue]="null">Select lead...</option>
+          @for (l of leadsList(); track l.id) {
+            <option [value]="l.id">{{l.customer_name || l.name}} - {{l.destination || 'No Dest'}}</option>
+          }
+        </select>
       </div>
 
-      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Scheduling</h6></div>
-
-      <!-- Date -->
+      <!-- Type & Priority -->
       <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Follow-up Date <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar3"></i></span>
-          <input type="date" formControlName="follow_up_date" class="form-control bg-light border-0 py-2" [ngClass]="{'border border-danger': followUpForm.get('follow_up_date')?.invalid && followUpForm.get('follow_up_date')?.touched}">
-        </div>
-        @if (followUpForm.get('follow_up_date')?.invalid && followUpForm.get('follow_up_date')?.touched) {
-          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Date is required</div>
-        }
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Type</label>
+        <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="type">
+          <option value="call">Call</option>
+          <option value="email">Email</option>
+          <option value="meeting">Meeting</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
       </div>
-      <!-- Time -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Priority</label>
+        <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="priority">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="urgent">Urgent</option>
+        </select>
+      </div>
+
+      <!-- Date & Time -->
+      <div class="col-md-6">
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Date <span class="text-danger">*</span></label>
+        <input type="date" formControlName="follow_up_date" class="form-control bg-light border-0 py-2">
+      </div>
       <div class="col-md-6">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Time</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-clock"></i></span>
-          <input type="time" formControlName="follow_up_time" class="form-control bg-light border-0 py-2">
-        </div>
+        <input type="time" formControlName="follow_up_time" class="form-control bg-light border-0 py-2">
       </div>
 
-      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Outcome & Status</h6></div>
-
       <!-- Status -->
-      <div class="col-md-4">
+      <div class="col-md-12">
         <label class="form-label text-slate-700 fw-medium mb-1 small">Status</label>
         <select class="form-select bg-light border-0 py-2 text-slate-700" formControlName="status">
-          <option value="done">Done</option>
           <option value="pending">Pending</option>
-          <option value="missed">Missed</option>
+          <option value="completed">Completed</option>
+          <option value="rescheduled">Rescheduled</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
 
       <!-- Remarks -->
       <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Remarks / Minutes</label>
-        <textarea class="form-control bg-light border-0 py-3" rows="4" formControlName="remarks" placeholder="Enter notes from the call/meeting, or what needs to be discussed..."></textarea>
+        <label class="form-label text-slate-700 fw-medium mb-1 small">Remarks / Call Agenda</label>
+        <textarea class="form-control bg-light border-0 py-2" rows="3" formControlName="remarks" placeholder="Enter topic to discuss or customer notes..."></textarea>
       </div>
     </form>
+
+    <!-- Discussion & Activity Trail Section -->
+    @if (view() === 'edit' && itemToEdit) {
+      <div class="mt-4 pt-3 border-top">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <h6 class="text-slate-800 fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-chat-left-text-fill text-primary"></i>
+            Discussion & Activity Trail
+            <span class="badge bg-slate-100 text-slate-700 rounded-pill fs-7 px-2.5">
+              {{ activities().length }}
+            </span>
+          </h6>
+        </div>
+
+        <!-- Post New Comment / Discussion Note Form -->
+        <div class="card border-0 bg-light rounded-3 p-3 mb-4">
+          <label class="form-label text-slate-700 fw-semibold small mb-1">Add Discussion Note or Customer Update</label>
+          <textarea class="form-control border-0 bg-white shadow-none text-slate-700 py-2 px-3 rounded-2 mb-2"
+            rows="2"
+            style="font-size: 0.875rem;"
+            placeholder="Type comment or interaction update..."
+            [value]="commentText()"
+            (input)="commentText.set($any($event.target).value)"></textarea>
+
+          <div class="d-flex align-items-center justify-content-between">
+            @if (isManagerOrAdmin()) {
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="followupInternalNoteSwitch"
+                  [checked]="isInternalNote()"
+                  (change)="isInternalNote.set($any($event.target).checked)">
+                <label class="form-check-label text-slate-600 small fw-medium" for="followupInternalNoteSwitch">
+                  <i class="bi bi-lock-fill me-1 text-warning"></i> Internal Manager Note
+                </label>
+              </div>
+            } @else {
+              <div></div>
+            }
+
+            <button type="button" class="btn btn-primary btn-sm px-3 fw-semibold rounded-2 d-flex align-items-center gap-1 shadow-sm"
+              [disabled]="!commentText().trim()"
+              (click)="submitComment()">
+              <i class="bi bi-send-fill" style="font-size: 0.75rem;"></i> Post Comment
+            </button>
+          </div>
+        </div>
+
+        <!-- Activity Feed List -->
+        @if (isLoadingActivities()) {
+          <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <span class="ms-2 small text-slate-500">Loading trail...</span>
+          </div>
+        } @else {
+          <div class="timeline position-relative">
+            @for (act of activities(); track act.id) {
+              <div class="timeline-item position-relative pb-3 mb-3 border-bottom border-light">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold text-slate-800" style="font-size: 0.85rem;">{{ act.user?.name || 'System' }}</span>
+                    @if (act.is_internal) {
+                      <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">
+                        <i class="bi bi-lock-fill me-0.5"></i> Internal
+                      </span>
+                    }
+                    <span class="badge bg-slate-100 text-slate-700 rounded-pill text-capitalize px-2 py-0.5" style="font-size: 0.65rem;">
+                      {{ act.activity_type ? act.activity_type.replace('_', ' ') : 'Activity' }}
+                    </span>
+                  </div>
+                  <small class="text-slate-400" style="font-size: 0.75rem;">
+                    {{ act.created_at | date:'short' }}
+                  </small>
+                </div>
+                <p class="text-slate-600 mb-0" style="font-size: 0.875rem; white-space: pre-wrap;">
+                  {{ act.comment || act.description }}
+                </p>
+              </div>
+            } @empty {
+              <div class="text-center py-4 text-slate-400 small bg-slate-50 rounded-3">
+                <i class="bi bi-chat-left-dots d-block fs-4 text-slate-300 mb-1"></i>
+                No discussion entries yet. Add the first comment above!
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 
-  <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
+  <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3">
     <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
     <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveFollowUp()" [attr.data-bs-dismiss]="followUpForm.valid ? 'offcanvas' : null">
       <i class="bi bi-check2"></i> Save Follow-up
@@ -210,17 +484,12 @@
 <div class="modal fade" id="deleteFollowUpModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="modal-header border-bottom-0 pb-0 bg-white">
-        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center px-5 pt-0 pb-4">
+      <div class="modal-body text-center px-5 pt-4 pb-4">
         <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-4" style="width: 80px; height: 80px;">
           <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
         </div>
         <h4 class="fw-bold text-slate-800 mb-2">Delete Follow-up?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to delete this interaction with @if (itemToDelete) {
-          <strong class="text-slate-700">{{itemToDelete.lead}}</strong>
-        }? This action cannot be undone.</p>
+        <p class="text-slate-500 mb-0">Are you sure you want to delete this interaction? This action cannot be undone.</p>
       </div>
       <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
         <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>

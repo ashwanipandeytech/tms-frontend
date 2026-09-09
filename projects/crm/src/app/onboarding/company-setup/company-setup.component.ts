@@ -100,18 +100,76 @@ import { OnboardingService } from '../onboarding.service';
                     </div>
                   </div>
 
-                  <!-- CRM Preferences -->
-                  <div class="mt-4 d-none">
-                    <h5 class="fw-bold mb-3">CRM Preferences</h5>
-                    <div class="mb-4">
-                      <label class="form-label fw-semibold">Number of CRM Users *</label>
-                      <div class="d-flex align-items-center gap-3">
-                        <input type="range" class="form-range flex-grow-1" min="1" max="100" 
-                               [value]="companyForm.get('addon_user_seats')?.value"
-                               (input)="updateUsers($event)">
-                        <input type="number" class="form-control text-center fw-bold" style="width: 80px;" formControlName="addon_user_seats">
+                  <!-- Optional Integrations Section -->
+                  <div class="mb-4">
+                    <div class="card border border-light-subtle rounded-3 overflow-hidden">
+                      <div class="card-header bg-white py-3 cursor-pointer d-flex justify-content-between align-items-center" (click)="toggleIntegrations()" style="cursor: pointer;">
+                        <div>
+                          <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-plug-fill me-2 text-primary"></i>Lead Ads & Webhook Integrations <span class="badge bg-secondary-subtle text-secondary ms-2 fw-normal">Optional</span></h6>
+                          <span class="small text-muted">Configure Meta Ads, Google Ads, and WhatsApp credentials (or set up later in Settings)</span>
+                        </div>
+                        <i class="bi" [ngClass]="showIntegrations ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                       </div>
-                      <div class="small text-muted mt-1">Pricing dynamically updates based on users.</div>
+                      <div class="card-body p-3 bg-light" *ngIf="showIntegrations">
+                        <!-- Meta Ads -->
+                        <h6 class="fw-bold text-primary mb-2"><i class="bi bi-facebook me-1"></i> Meta / Facebook Ads Credentials</h6>
+                        <div class="row g-2 mb-3">
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Webhook Verify Token</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="meta_verify_token" placeholder="safarsystem_meta_token_2026">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Meta App ID</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="meta_app_id" placeholder="App ID">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Meta App Secret</label>
+                            <input type="password" class="form-control form-control-sm" formControlName="meta_app_secret" placeholder="App Secret">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Page Access Token</label>
+                            <input type="password" class="form-control form-control-sm" formControlName="meta_access_token" placeholder="Page Access Token">
+                          </div>
+                        </div>
+
+                        <!-- Google Ads -->
+                        <h6 class="fw-bold text-danger mb-2"><i class="bi bi-google me-1"></i> Google Ads Lead Form Keys</h6>
+                        <div class="row g-2 mb-3">
+                          <div class="col-md-4">
+                            <label class="form-label small fw-medium text-muted">Webhook Secret / Key</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="google_webhook_key" placeholder="safarsystem_google_key_2026">
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label small fw-medium text-muted">Client ID</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="google_client_id" placeholder="Client ID">
+                          </div>
+                          <div class="col-md-4">
+                            <label class="form-label small fw-medium text-muted">Client Secret</label>
+                            <input type="password" class="form-control form-control-sm" formControlName="google_client_secret" placeholder="Client Secret">
+                          </div>
+                        </div>
+
+                        <!-- WhatsApp Cloud API -->
+                        <h6 class="fw-bold text-success mb-2"><i class="bi bi-whatsapp me-1"></i> WhatsApp Business Cloud API</h6>
+                        <div class="row g-2">
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Verify Token</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="whatsapp_verify_token" placeholder="safarsystem_whatsapp_token_2026">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">API Permanent Token</label>
+                            <input type="password" class="form-control form-control-sm" formControlName="whatsapp_api_token" placeholder="API Token">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Phone Number ID</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="whatsapp_phone_number_id" placeholder="Phone Number ID">
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label small fw-medium text-muted">Business Account ID</label>
+                            <input type="text" class="form-control form-control-sm" formControlName="whatsapp_business_account_id" placeholder="Business Account ID">
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -194,6 +252,7 @@ export class CompanySetupComponent implements OnInit {
 
   companyForm!: FormGroup;
   loading = false;
+  showIntegrations = false;
 
   ngOnInit() {
     if (!this.onboardingService.selectedPlan()) {
@@ -209,8 +268,25 @@ export class CompanySetupComponent implements OnInit {
       admin_phone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       admin_email: ['', [Validators.required, Validators.email]],
       initial_password: ['', [Validators.required, Validators.minLength(8)]],
-      addon_user_seats: [1, [Validators.required, Validators.min(1)]]
+      addon_user_seats: [1, [Validators.required, Validators.min(1)]],
+
+      // Optional Integration Fields
+      meta_verify_token: [''],
+      meta_app_id: [''],
+      meta_app_secret: [''],
+      meta_access_token: [''],
+      google_webhook_key: [''],
+      google_client_id: [''],
+      google_client_secret: [''],
+      whatsapp_verify_token: [''],
+      whatsapp_api_token: [''],
+      whatsapp_phone_number_id: [''],
+      whatsapp_business_account_id: ['']
     });
+  }
+
+  toggleIntegrations() {
+    this.showIntegrations = !this.showIntegrations;
   }
 
   isInvalid(field: string): boolean {
@@ -263,7 +339,6 @@ export class CompanySetupComponent implements OnInit {
     
     const plan = this.onboardingService.selectedPlan();
     
-    // Fallback ID mapping for demo purposes. In reality, ID comes from the API.
     const planIdMapping: any = { 'starter': 1, 'professional': 2, 'business': 3, 'enterprise': 4 };
     const planId = plan ? planIdMapping[plan.id] || 1 : 1;
 

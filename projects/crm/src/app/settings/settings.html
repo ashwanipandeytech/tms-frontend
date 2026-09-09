@@ -1,20 +1,448 @@
 <div class="container-fluid p-0">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+
+  <!-- Page Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
-      <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">Settings</h3>
-      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage your workspace preferences and data.</p>
+      <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
+        <i class="bi bi-gear-wide-connected text-primary"></i> Settings & Business Profile
+      </h3>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Configure company details, subscription plan, seats, and automated lead capture webhooks (Meta, Google, WhatsApp).</p>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-lg-8">
-      <!-- General Settings Placeholder -->
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4">
-          <h5 class="fw-bold text-slate-700 mb-3">General Settings</h5>
-          <p class="text-muted">General workspace configuration will appear here.</p>
-        </div>
+  <!-- Global Alerts -->
+  @if (successMessage()) {
+    <div class="alert alert-success alert-dismissible fade show mb-4 shadow-sm border-0" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i> {{ successMessage() }}
+      <button type="button" class="btn-close" (click)="successMessage.set(null)"></button>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4 shadow-sm border-0" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i> {{ errorMessage() }}
+      <button type="button" class="btn-close" (click)="errorMessage.set(null)"></button>
+    </div>
+  }
+
+  <!-- Navigation Tabs -->
+  <div class="d-flex border-bottom mb-4 gap-2 overflow-x-auto">
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'company' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('company')">
+      <i class="bi bi-building me-2"></i> Business Profile
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'plan' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('plan')">
+      <i class="bi bi-credit-card-2-front me-2"></i> Plan & Subscription
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'meta' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('meta')">
+      <i class="bi bi-facebook text-primary me-2"></i> Meta Lead Ads
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'google' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('google')">
+      <i class="bi bi-google text-danger me-2"></i> Google Ads
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'whatsapp' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('whatsapp')">
+      <i class="bi bi-whatsapp text-success me-2"></i> WhatsApp API
+    </button>
+    <button class="btn btn-link text-decoration-none px-4 py-2.5 fw-semibold border-bottom border-2 rounded-0 transition-all text-nowrap"
+      [ngClass]="activeTab() === 'webhooks' ? 'border-primary text-primary' : 'border-transparent text-slate-500 hover-text-slate-700'"
+      (click)="setTab('webhooks')">
+      <i class="bi bi-link-45deg me-2"></i> Webhook Endpoints
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading settings...</span>
       </div>
     </div>
-  </div>
+  } @else {
+
+    <!-- TAB 1: Business Profile -->
+    @if (activeTab() === 'company') {
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="card-header bg-slate-50 border-bottom p-4">
+          <h5 class="fw-bold text-slate-800 mb-1">Company & Business Information</h5>
+          <p class="text-slate-500 small mb-0">Update your official company contact details, tenant subdomain slug, and automated lead distribution rules.</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form [formGroup]="companyForm" (ngSubmit)="saveCompanyProfile()">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Company Name <span class="text-danger">*</span></label>
+                <input type="text" formControlName="name" class="form-control bg-light border-0 py-2.5" placeholder="e.g. Radhey Shyam Travels">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Subdomain Slug</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-0 text-muted">https://</span>
+                  <input type="text" formControlName="subdomain" class="form-control bg-light border-0 py-2.5" placeholder="radheyshyam">
+                  <span class="input-group-text bg-light border-0 text-muted">.demohandler.in</span>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Support Email</label>
+                <input type="email" formControlName="email" class="form-control bg-light border-0 py-2.5" placeholder="support@radheyshyam.com">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Phone Number</label>
+                <input type="text" formControlName="phone" class="form-control bg-light border-0 py-2.5" placeholder="+91 98111 22334">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label fw-semibold text-slate-700 small">Office Address</label>
+                <textarea formControlName="address" class="form-control bg-light border-0 py-2.5" rows="2" placeholder="e.g. Suite 402, Travel Towers, MG Road, New Delhi"></textarea>
+              </div>
+
+              <div class="col-12 border-top pt-4 mt-4">
+                <h6 class="fw-bold text-slate-800 mb-3">Lead Auto-Assignment Rules</h6>
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold text-slate-700 small">Default Daily Lead Cap per Rep</label>
+                    <input type="number" formControlName="default_max_daily_leads" class="form-control bg-light border-0 py-2.5" min="1" max="1000">
+                    <small class="text-slate-400 d-block mt-1">Maximum leads assigned to a sales rep in a single 24-hour cycle before holding in unassigned queue.</small>
+                  </div>
+                  <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check form-switch mt-3">
+                      <input class="form-check-input" type="checkbox" id="autoAssignSwitch" formControlName="auto_assign_enabled">
+                      <label class="form-check-label fw-semibold text-slate-700 ms-2" for="autoAssignSwitch">
+                        Enable Automated Round-Robin Lead Distribution
+                      </label>
+                      <small class="text-slate-400 d-block">Automatically route incoming Meta, Google, & Website leads to available sales reps.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary px-5 py-2.5 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2" [disabled]="isSaving()">
+                <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-check2" *ngIf="!isSaving()"></i> Save Business Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: Plan & Subscription -->
+    @if (activeTab() === 'plan') {
+      <div class="row g-4">
+        <!-- Current Subscription Summary Card -->
+        <div class="col-md-4">
+          <div class="card border-0 shadow-sm rounded-4 bg-primary text-white p-4 h-100 position-relative overflow-hidden">
+            <div class="position-absolute end-0 bottom-0 opacity-10 pe-3 pb-3" style="font-size: 8rem; line-height: 1;">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div class="position-relative z-1">
+              <span class="badge bg-white-subtle text-white rounded-pill px-3 py-1 fw-semibold text-uppercase mb-3" style="letter-spacing: 0.5px;">
+                {{ profileData()?.subscription_status | titlecase }} Subscription
+              </span>
+              <h3 class="fw-bold mb-1">{{ profileData()?.plan?.name || 'Standard Plan' }}</h3>
+              <p class="text-white-50 small mb-4">Billing Cycle: {{ profileData()?.billing_cycle | titlecase }}</p>
+
+              <div class="border-top border-white-subtle pt-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-white-75 small">Total Allowed Seats:</span>
+                  <span class="fw-bold fs-5">{{ profileData()?.total_allowed_seats || 5 }} Seats</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-white-75 small">Base Plan Seats:</span>
+                  <span class="fw-semibold">{{ profileData()?.base_user_seats || 5 }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-white-75 small">Add-on Seats Purchased:</span>
+                  <span class="fw-semibold">{{ profileData()?.addon_user_seats || 0 }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="text-white-75 small">Active Employee Accounts:</span>
+                  <span class="fw-semibold">{{ profileData()?.active_users_count || 0 }} / {{ profileData()?.total_allowed_seats }}</span>
+                </div>
+              </div>
+
+              @if (profileData()?.subscription_ends_at) {
+                <div class="bg-white-subtle rounded-3 p-3 mt-4">
+                  <span class="small d-block text-white-75">Subscription Renewal / Expiry:</span>
+                  <strong class="fs-6">{{ profileData()?.subscription_ends_at | date:'mediumDate' }}</strong>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Upgrade / Plan Options -->
+        <div class="col-md-8">
+          <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden h-100">
+            <div class="card-header bg-slate-50 border-bottom p-4">
+              <h5 class="fw-bold text-slate-800 mb-1">Upgrade Plan & Add-on User Capacity</h5>
+              <p class="text-slate-500 small mb-0">Switch your subscription tier or expand user seats for growing team capacity.</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+              <form [formGroup]="planForm" (ngSubmit)="savePlanUpgrade()">
+                <div class="row g-4">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold text-slate-700 small">Select Subscription Tier <span class="text-danger">*</span></label>
+                    <select formControlName="plan_id" class="form-select bg-light border-0 py-2.5">
+                      <option [ngValue]="null">Select plan...</option>
+                      @for (p of plansList(); track p.id) {
+                        <option [value]="p.id">{{p.name}} — ₹{{p.price}}/mo ({{p.base_user_seats}} Base Seats)</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold text-slate-700 small">Billing Frequency</label>
+                    <select formControlName="billing_cycle" class="form-select bg-light border-0 py-2.5">
+                      <option value="monthly">Monthly Billing</option>
+                      <option value="yearly">Yearly Billing (Save 20%)</option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-12">
+                    <label class="form-label fw-semibold text-slate-700 small">Extra Add-on Seats Count</label>
+                    <input type="number" formControlName="addon_user_seats" class="form-control bg-light border-0 py-2.5" min="0" max="500">
+                    <small class="text-slate-400 d-block mt-1">Add-on seats allow adding extra team members beyond base plan capacity.</small>
+                  </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+                  <button type="submit" class="btn btn-success px-5 py-2.5 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2" [disabled]="isSaving()">
+                    <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+                    <i class="bi bi-arrow-up-circle-fill" *ngIf="!isSaving()"></i> Update Plan Subscription
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 3: Meta Integration -->
+    @if (activeTab() === 'meta') {
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="card-header bg-slate-50 border-bottom p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold text-slate-800 mb-1 d-flex align-items-center gap-2">
+              <i class="bi bi-facebook text-primary"></i> Meta Facebook & Instagram Lead Ads
+            </h5>
+            <p class="text-slate-500 small mb-0">Connect Meta Lead Gen forms to capture Facebook and Instagram leads automatically.</p>
+          </div>
+          <span class="badge rounded-pill px-3 py-2 fw-semibold" [ngClass]="metaForm.get('is_active')?.value ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
+            {{ metaForm.get('is_active')?.value ? 'Active' : 'Disabled' }}
+          </span>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form [formGroup]="metaForm" (ngSubmit)="saveMeta()">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">App ID / Client ID</label>
+                <input type="text" formControlName="app_id" class="form-control bg-light border-0 py-2.5" placeholder="e.g. 1029384756102938">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">App Secret Key</label>
+                <input type="password" formControlName="app_secret" class="form-control bg-light border-0 py-2.5" placeholder="••••••••••••••••••••••••">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Webhook Verify Token</label>
+                <input type="text" formControlName="verify_token" class="form-control bg-light border-0 py-2.5" placeholder="Custom secret token for webhook verification">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Page Access Token</label>
+                <input type="text" formControlName="access_token" class="form-control bg-light border-0 py-2.5" placeholder="EAABb...">
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="metaActiveSwitch" formControlName="is_active">
+                  <label class="form-check-label fw-semibold text-slate-700 ms-2" for="metaActiveSwitch">Enable Meta Integration</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary px-5 py-2.5 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2" [disabled]="isSaving()">
+                <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-check2" *ngIf="!isSaving()"></i> Save Meta Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 4: Google Ads Integration -->
+    @if (activeTab() === 'google') {
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="card-header bg-slate-50 border-bottom p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold text-slate-800 mb-1 d-flex align-items-center gap-2">
+              <i class="bi bi-google text-danger"></i> Google Search Ads Lead Form Extensions
+            </h5>
+            <p class="text-slate-500 small mb-0">Capture leads submitted via Google Lead Form extensions directly into CRM.</p>
+          </div>
+          <span class="badge rounded-pill px-3 py-2 fw-semibold" [ngClass]="googleForm.get('is_active')?.value ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
+            {{ googleForm.get('is_active')?.value ? 'Active' : 'Disabled' }}
+          </span>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form [formGroup]="googleForm" (ngSubmit)="saveGoogle()">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Google Webhook Secret Key</label>
+                <input type="text" formControlName="webhook_secret" class="form-control bg-light border-0 py-2.5" placeholder="e.g. google_lead_secret_key_123">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Google Ads Customer ID / App ID</label>
+                <input type="text" formControlName="app_id" class="form-control bg-light border-0 py-2.5" placeholder="e.g. 123-456-7890">
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="googleActiveSwitch" formControlName="is_active">
+                  <label class="form-check-label fw-semibold text-slate-700 ms-2" for="googleActiveSwitch">Enable Google Ads Integration</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary px-5 py-2.5 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2" [disabled]="isSaving()">
+                <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-check2" *ngIf="!isSaving()"></i> Save Google Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 5: WhatsApp Integration -->
+    @if (activeTab() === 'whatsapp') {
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="card-header bg-slate-50 border-bottom p-4 d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold text-slate-800 mb-1 d-flex align-items-center gap-2">
+              <i class="bi bi-whatsapp text-success"></i> WhatsApp Business Cloud API
+            </h5>
+            <p class="text-slate-500 small mb-0">Automate WhatsApp lead notifications and incoming message tracking.</p>
+          </div>
+          <span class="badge rounded-pill px-3 py-2 fw-semibold" [ngClass]="whatsappForm.get('is_active')?.value ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'">
+            {{ whatsappForm.get('is_active')?.value ? 'Active' : 'Disabled' }}
+          </span>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <form [formGroup]="whatsappForm" (ngSubmit)="saveWhatsapp()">
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">WhatsApp Phone Number ID</label>
+                <input type="text" formControlName="phone_number_id" class="form-control bg-light border-0 py-2.5" placeholder="e.g. 10928374650">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Business Account ID</label>
+                <input type="text" formControlName="account_id" class="form-control bg-light border-0 py-2.5" placeholder="e.g. 987654321">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Verify Token</label>
+                <input type="text" formControlName="verify_token" class="form-control bg-light border-0 py-2.5" placeholder="Custom token">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold text-slate-700 small">Permanent Access Token</label>
+                <input type="text" formControlName="access_token" class="form-control bg-light border-0 py-2.5" placeholder="EAAGb...">
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="waActiveSwitch" formControlName="is_active">
+                  <label class="form-check-label fw-semibold text-slate-700 ms-2" for="waActiveSwitch">Enable WhatsApp Integration</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary px-5 py-2.5 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2" [disabled]="isSaving()">
+                <span *ngIf="isSaving()" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-check2" *ngIf="!isSaving()"></i> Save WhatsApp Settings
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 6: Webhook Endpoints -->
+    @if (activeTab() === 'webhooks') {
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+        <div class="card-header bg-slate-50 border-bottom p-4">
+          <h5 class="fw-bold text-slate-800 mb-1">Company Tenant Webhook URLs</h5>
+          <p class="text-slate-500 small mb-0">Use these unique endpoint URLs to configure webhook subscriptions in Meta Developers, Google Ads, and Website HTML forms.</p>
+        </div>
+        <div class="card-body p-4 p-md-5">
+          <div class="row g-4">
+            <!-- Meta Webhook -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700 small d-flex align-items-center gap-2">
+                <i class="bi bi-facebook text-primary"></i> Meta Facebook/Instagram Lead Webhook URL
+              </label>
+              <div class="input-group">
+                <input type="text" class="form-control bg-light border-0 py-2.5 font-monospace text-slate-700" readonly [value]="integrationsData()?.webhook_urls?.meta || ''">
+                <button class="btn btn-outline-secondary px-3" (click)="copyUrl(integrationsData()?.webhook_urls?.meta || '')">
+                  <i class="bi bi-clipboard"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <!-- Google Webhook -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700 small d-flex align-items-center gap-2">
+                <i class="bi bi-google text-danger"></i> Google Ads Lead Form Webhook URL
+              </label>
+              <div class="input-group">
+                <input type="text" class="form-control bg-light border-0 py-2.5 font-monospace text-slate-700" readonly [value]="integrationsData()?.webhook_urls?.google || ''">
+                <button class="btn btn-outline-secondary px-3" (click)="copyUrl(integrationsData()?.webhook_urls?.google || '')">
+                  <i class="bi bi-clipboard"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <!-- WhatsApp Webhook -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700 small d-flex align-items-center gap-2">
+                <i class="bi bi-whatsapp text-success"></i> WhatsApp Business Cloud Webhook URL
+              </label>
+              <div class="input-group">
+                <input type="text" class="form-control bg-light border-0 py-2.5 font-monospace text-slate-700" readonly [value]="integrationsData()?.webhook_urls?.whatsapp || ''">
+                <button class="btn btn-outline-secondary px-3" (click)="copyUrl(integrationsData()?.webhook_urls?.whatsapp || '')">
+                  <i class="bi bi-clipboard"></i> Copy
+                </button>
+              </div>
+            </div>
+
+            <!-- Website Form Webhook -->
+            <div class="col-12">
+              <label class="form-label fw-semibold text-slate-700 small d-flex align-items-center gap-2">
+                <i class="bi bi-globe text-info"></i> Website Contact Form Webhook URL
+              </label>
+              <div class="input-group">
+                <input type="text" class="form-control bg-light border-0 py-2.5 font-monospace text-slate-700" readonly [value]="integrationsData()?.webhook_urls?.website || ''">
+                <button class="btn btn-outline-secondary px-3" (click)="copyUrl(integrationsData()?.webhook_urls?.website || '')">
+                  <i class="bi bi-clipboard"></i> Copy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+  }
 </div>

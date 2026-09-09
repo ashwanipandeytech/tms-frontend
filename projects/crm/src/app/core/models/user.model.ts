@@ -14,6 +14,10 @@ export interface User {
   phone: string;
   avatar: string | null;
   status: string;
+  role_id?: number;
+  max_daily_leads?: number;
+  auto_assign_enabled?: boolean;
+  last_assigned_at?: string | null;
   role: Role;
 }
 

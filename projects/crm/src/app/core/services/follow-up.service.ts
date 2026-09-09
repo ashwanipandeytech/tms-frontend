@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiResponse, PaginatedResponse } from '../models/api-response.model';
-import { FollowUp, CreateFollowUpDto } from '../models/follow-up.model';
+import { FollowUp, CreateFollowUpDto, CompleteFollowUpDto, RescheduleFollowUpDto } from '../models/follow-up.model';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +17,7 @@ export class FollowUpService {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
-        if (params[key]) {
+        if (params[key] !== null && params[key] !== undefined && params[key] !== '') {
           httpParams = httpParams.set(key, params[key]);
         }
       });
@@ -33,7 +33,15 @@ export class FollowUpService {
     return this.http.put<ApiResponse<FollowUp>>(`${this.apiUrl}/${id}`, data);
   }
 
-  deleteFollowUp(id: number): Observable<ApiResponse<null>> {
+  completeFollowUp(id: number | string, data: CompleteFollowUpDto): Observable<ApiResponse<FollowUp>> {
+    return this.http.put<ApiResponse<FollowUp>>(`${this.apiUrl}/${id}/complete`, data);
+  }
+
+  rescheduleFollowUp(id: number | string, data: RescheduleFollowUpDto): Observable<ApiResponse<FollowUp>> {
+    return this.http.put<ApiResponse<FollowUp>>(`${this.apiUrl}/${id}/reschedule`, data);
+  }
+
+  deleteFollowUp(id: number | string): Observable<ApiResponse<null>> {
     return this.http.delete<ApiResponse<null>>(`${this.apiUrl}/${id}`);
   }
 }
