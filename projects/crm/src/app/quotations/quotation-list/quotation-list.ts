@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { QuotationService } from '../../core/services/quotation.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Quotation } from '../../core/models/quotation.model';
@@ -18,6 +18,7 @@ export class QuotationListComponent implements OnInit {
   quotations = signal<Quotation[]>([]);
   isLoading = signal<boolean>(false);
   activeTab = signal<string>('all');
+  highlightId = signal<number | null>(null);
   searchQuery = signal<string>('');
   currentPage = signal<number>(1);
   totalPages = signal<number>(1);
@@ -25,27 +26,103 @@ export class QuotationListComponent implements OnInit {
   actionError = signal<string | null>(null);
   actionSuccess = signal<string | null>(null);
 
-  // User Role Check
-  isManagerOrAdmin = computed(() => {
-    const user = this.authService.currentUser();
-    return user?.role_id === 1 || user?.role_id === 2; // Super Admin or Manager
+  counts = signal<{
+    pending_approval: number;
+    approved: number;
+    drafts: number;
+    sent: number;
+    accepted: number;
+    pipeline_value: number;
+  }>({
+    pending_approval: 0,
+    approved: 0,
+    drafts: 0,
+    sent: 0,
+    accepted: 0,
+    pipeline_value: 0
   });
 
-  // Computed metrics
-  pendingApprovalCount = computed(() => this.quotations().filter(q => q.approval_status === 'pending_approval').length);
-  draftCount = computed(() => this.quotations().filter(q => q.status === 'draft').length);
-  sentCount = computed(() => this.quotations().filter(q => q.status === 'sent').length);
-  acceptedCount = computed(() => this.quotations().filter(q => q.status === 'accepted' || q.converted_booking_id).length);
-  totalPipelineValue = computed(() => this.quotations().reduce((acc, q) => acc + (q.final_amount || 0), 0));
+  // User Role Check: Default to true if user is loading so buttons remain accessible to Admin/Manager
+  isManagerOrAdmin = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return true;
+    return user.role_id === 1 || user.role_id === 2 || user.role?.id === 1 || user.role?.id === 2 || user.role?.name === 'Super Admin' || user.role?.name === 'Manager';
+  });
+
+  // Modal State
+  activeModalQuotation = signal<Quotation | null>(null);
+  activeModalAction = signal<'approve' | 'reject' | null>(null);
+  modalComments = signal<string>('');
 
   constructor(
     private quotationService: QuotationService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    const queryTab = this.route.snapshot.queryParamMap.get('tab');
+    const highlightParam = this.route.snapshot.queryParamMap.get('highlight');
+
+    if (queryTab) {
+      this.activeTab.set(queryTab);
+    }
+    if (highlightParam) {
+      this.highlightId.set(+highlightParam);
+    }
+
+    this.fetchCounts();
     this.fetchQuotations();
+  }
+
+  openApprovalModal(q: Quotation, action: 'approve' | 'reject'): void {
+    this.activeModalQuotation.set(q);
+    this.activeModalAction.set(action);
+    this.modalComments.set(action === 'approve' ? 'Approved by Manager' : '');
+  }
+
+  closeModal(): void {
+    this.activeModalQuotation.set(null);
+    this.activeModalAction.set(null);
+    this.modalComments.set('');
+  }
+
+  async submitModalAction(): Promise<void> {
+    const q = this.activeModalQuotation();
+    const action = this.activeModalAction();
+    const comments = this.modalComments().trim();
+
+    if (!q || !action) return;
+
+    if (action === 'reject' && !comments) {
+      alert('Please enter a rejection reason for the sales executive.');
+      return;
+    }
+
+    try {
+      if (action === 'approve') {
+        await firstValueFrom(this.quotationService.approveQuotation(q.id, comments));
+        this.actionSuccess.set(`Quotation #${q.quotation_no} APPROVED successfully!`);
+      } else {
+        await firstValueFrom(this.quotationService.rejectInternal(q.id, comments));
+        this.actionSuccess.set(`Quotation #${q.quotation_no} returned for revision with feedback.`);
+      }
+      this.closeModal();
+      this.fetchCounts();
+      this.fetchQuotations();
+    } catch (err: any) {
+      this.actionError.set(err?.error?.message || 'Action failed');
+    }
+  }
+
+  async fetchCounts(): Promise<void> {
+    try {
+      const c = await firstValueFrom(this.quotationService.getCounts());
+      this.counts.set(c);
+    } catch (err) {
+      console.error('Failed to fetch quotation counts', err);
+    }
   }
 
   async fetchQuotations(): Promise<void> {
@@ -101,6 +178,7 @@ export class QuotationListComponent implements OnInit {
     try {
       await firstValueFrom(this.quotationService.submitApproval(q.id, 'Submitted for Manager Review'));
       this.actionSuccess.set(`Quotation #${q.quotation_no} submitted for Manager approval!`);
+      this.fetchCounts();
       this.fetchQuotations();
     } catch (err: any) {
       this.actionError.set(err?.error?.message || 'Failed to submit quotation for approval');
@@ -114,6 +192,7 @@ export class QuotationListComponent implements OnInit {
     try {
       await firstValueFrom(this.quotationService.approveQuotation(q.id, comments));
       this.actionSuccess.set(`Quotation #${q.quotation_no} Approved successfully!`);
+      this.fetchCounts();
       this.fetchQuotations();
     } catch (err: any) {
       this.actionError.set(err?.error?.message || 'Failed to approve quotation');
@@ -130,6 +209,7 @@ export class QuotationListComponent implements OnInit {
     try {
       await firstValueFrom(this.quotationService.rejectInternal(q.id, reason));
       this.actionSuccess.set(`Quotation #${q.quotation_no} returned for revision with feedback.`);
+      this.fetchCounts();
       this.fetchQuotations();
     } catch (err: any) {
       this.actionError.set(err?.error?.message || 'Failed to reject quotation');
@@ -145,6 +225,7 @@ export class QuotationListComponent implements OnInit {
     try {
       await firstValueFrom(this.quotationService.sendQuotation(q.id));
       this.actionSuccess.set(`Quotation #${q.quotation_no} marked as Sent!`);
+      this.fetchCounts();
       this.fetchQuotations();
     } catch (err: any) {
       this.actionError.set(err?.error?.message || 'Failed to send quotation');

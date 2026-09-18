@@ -4,8 +4,13 @@ import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } fr
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { QuotationService } from '../../core/services/quotation.service';
 import { LeadService } from '../../core/services/lead.service';
+import { AuthService } from '../../core/services/auth.service';
+import { MasterActivityService, MasterActivity } from '../../core/services/master-activity.service';
 import { Quotation, QuotationPayload } from '../../core/models/quotation.model';
 import { firstValueFrom } from 'rxjs';
+
+
+import { PackageService } from '../../core/services/package.service';
 
 @Component({
   selector: 'app-quotation-editor',
@@ -16,26 +21,152 @@ import { firstValueFrom } from 'rxjs';
 })
 export class QuotationEditorComponent implements OnInit {
   quotationForm!: FormGroup;
+  quotation = signal<Quotation | null>(null);
   isEditMode = signal<boolean>(false);
   quotationId = signal<number | null>(null);
   isLoading = signal<boolean>(false);
   isSaving = signal<boolean>(false);
   leads = signal<any[]>([]);
+  packages = signal<any[]>([]);
   errorMessage = signal<string | null>(null);
   activeStep = signal<number>(1);
+
+  isManagerOrAdmin = computed(() => {
+    const user = this.authService.currentUser();
+    if (!user) return true;
+    return user.role_id === 1 || user.role_id === 2 || user.role?.id === 1 || user.role?.id === 2 || user.role?.name === 'Super Admin' || user.role?.name === 'Manager';
+  });
+
+  returnTab = signal<string>('all');
+
+  masterActivities = signal<MasterActivity[]>([]);
+  showMasterCatalogModal = signal<boolean>(false);
+  targetDayIndexForMaster = signal<number | null>(null);
 
   constructor(
     private fb: FormBuilder,
     private quotationService: QuotationService,
     private leadService: LeadService,
+    private packageService: PackageService,
+    private authService: AuthService,
+    private masterActivityService: MasterActivityService,
     private router: Router,
     private route: ActivatedRoute
   ) {
     this.initForm();
   }
 
+  async loadMasterPackages(): Promise<void> {
+    try {
+      const res = await firstValueFrom(this.packageService.getPackages());
+      this.packages.set(res.data || []);
+    } catch (err) {
+      console.error('Failed to load packages', err);
+    }
+  }
+
+  async onMasterPackageSelect(packageId: any): Promise<void> {
+    if (!packageId) return;
+    try {
+      const res = await firstValueFrom(this.packageService.getPackage(+packageId));
+      const pkg = res.data;
+      if (pkg) {
+        this.quotationForm.patchValue({
+          destination: pkg.name || this.quotationForm.get('destination')?.value,
+          terms_and_conditions: pkg.terms || this.quotationForm.get('terms_and_conditions')?.value
+        });
+
+        // Set line item unit price
+        if (this.itemsFormArray.length > 0) {
+          this.itemsFormArray.at(0).patchValue({
+            description: `Master Package: ${pkg.name}`,
+            unit_price: pkg.price || 0,
+            nights: pkg.nights || 1
+          });
+        }
+
+        // Set itinerary days if master itinerary days exist
+        if (pkg.itinerary?.days && pkg.itinerary.days.length > 0) {
+          this.daysFormArray.clear();
+          this.quotationForm.get('itinerary')?.patchValue({ title: `${pkg.name} Itinerary` });
+          pkg.itinerary.days.forEach((d: any) => {
+            this.daysFormArray.push(this.fb.group({
+              day_number: [d.day_number, Validators.required],
+              title: [d.title, Validators.required],
+              description: [d.description || ''],
+              meals: [d.meals || 'Breakfast'],
+              notes: [d.notes || '']
+            }));
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load master package details', err);
+    }
+  }
+
+
+  async openMasterCatalogModal(dayIndex: number): Promise<void> {
+    this.targetDayIndexForMaster.set(dayIndex);
+    this.showMasterCatalogModal.set(true);
+    const dest = this.quotationForm.get('destination')?.value || '';
+    try {
+      const res = await firstValueFrom(this.masterActivityService.getActivities({ destination: dest, approval_status: 'approved' }));
+      this.masterActivities.set(res.data || []);
+    } catch (err) {
+      console.error('Failed to load master activities', err);
+    }
+  }
+
+  closeMasterCatalogModal(): void {
+    this.showMasterCatalogModal.set(false);
+    this.targetDayIndexForMaster.set(null);
+  }
+
+  insertMasterActivity(activity: MasterActivity): void {
+    const dayIdx = this.targetDayIndexForMaster();
+    if (dayIdx !== null && dayIdx >= 0 && dayIdx < this.daysFormArray.length) {
+      const dayGroup = this.daysFormArray.at(dayIdx) as FormGroup;
+      const currentDesc = dayGroup.get('description')?.value || '';
+      const newDesc = currentDesc ? `${currentDesc}\n\n• ${activity.title}: ${activity.description}` : `• ${activity.title}: ${activity.description}`;
+      dayGroup.patchValue({
+        description: newDesc,
+        title: dayGroup.get('title')?.value || activity.title
+      });
+    }
+    this.closeMasterCatalogModal();
+  }
+
+  async saveDayAsMaster(dayIdx: number): Promise<void> {
+    const dayGroup = this.daysFormArray.at(dayIdx) as FormGroup;
+    const title = prompt('Enter Activity Title for Master Catalog:', dayGroup.get('title')?.value);
+    if (!title) return;
+
+    const dayId = dayGroup.get('id')?.value || (dayIdx + 1);
+    const payload = {
+      title,
+      destination: this.quotationForm.get('destination')?.value || 'General',
+      description: dayGroup.get('description')?.value,
+      category: 'Sightseeing'
+    };
+
+    try {
+      await firstValueFrom(this.masterActivityService.saveFromItineraryDay(dayId, payload));
+      alert('Activity successfully submitted to Master Catalog! (Pending Manager Approval if required)');
+    } catch (err: any) {
+      alert(err?.error?.message || 'Failed to save activity to Master Catalog');
+    }
+  }
+
+
   ngOnInit(): void {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam) {
+      this.returnTab.set(tabParam);
+    }
     this.loadLeads();
+    this.loadMasterPackages();
+
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.isEditMode.set(true);
@@ -181,6 +312,7 @@ export class QuotationEditorComponent implements OnInit {
     this.isLoading.set(true);
     try {
       const q = await firstValueFrom(this.quotationService.getQuotation(id));
+      this.quotation.set(q);
       this.quotationForm.patchValue({
         lead_id: q.lead_id,
         customer_name: q.customer_name,
@@ -262,11 +394,50 @@ export class QuotationEditorComponent implements OnInit {
       } else {
         await firstValueFrom(this.quotationService.createQuotation(payload));
       }
-      this.router.navigate(['/quotations']);
+      this.router.navigate(['/quotations'], { queryParams: { tab: this.returnTab(), highlight: this.quotationId() } });
     } catch (err: any) {
       this.errorMessage.set(err?.error?.message || 'Failed to save quotation.');
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  async approveQuotation(): Promise<void> {
+    if (!this.quotationId()) return;
+    const comments = prompt(`Approve Quotation #${this.quotation()?.quotation_no}? (Optional comments):`, 'Approved by Manager');
+    if (comments === null) return;
+
+    try {
+      await firstValueFrom(this.quotationService.approveQuotation(this.quotationId()!, comments));
+      this.router.navigate(['/quotations']);
+    } catch (err: any) {
+      this.errorMessage.set(err?.error?.message || 'Failed to approve quotation');
+    }
+  }
+
+  async rejectInternal(): Promise<void> {
+    if (!this.quotationId()) return;
+    const reason = prompt(`Reject & request revision for Quotation #${this.quotation()?.quotation_no}? (Required reason):`);
+    if (!reason) {
+      if (reason !== null) alert('Rejection reason is required.');
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.quotationService.rejectInternal(this.quotationId()!, reason));
+      this.router.navigate(['/quotations']);
+    } catch (err: any) {
+      this.errorMessage.set(err?.error?.message || 'Failed to reject quotation');
+    }
+  }
+
+  async submitApproval(): Promise<void> {
+    if (!this.quotationId()) return;
+    try {
+      await firstValueFrom(this.quotationService.submitApproval(this.quotationId()!, 'Resubmitted for Manager approval'));
+      this.router.navigate(['/quotations']);
+    } catch (err: any) {
+      this.errorMessage.set(err?.error?.message || 'Failed to submit quotation for approval');
     }
   }
 }

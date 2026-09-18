@@ -10,8 +10,10 @@ export interface Package {
   exclusions?: string;
   terms?: string;
   status: string;
+  itinerary?: any;
   created_at?: string;
 }
+
 
 export interface CreatePackageDto {
   name: string;

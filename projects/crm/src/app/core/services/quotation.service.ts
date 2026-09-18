@@ -32,6 +32,19 @@ export class QuotationService {
     return this.http.get<ApiResponse<Quotation[]>>(this.apiUrl, { params: httpParams });
   }
 
+  getCounts(): Observable<{
+    pending_approval: number;
+    approved: number;
+    drafts: number;
+    sent: number;
+    accepted: number;
+    pipeline_value: number;
+  }> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/counts`).pipe(
+      map(res => res.data)
+    );
+  }
+
   getQuotation(id: number): Observable<Quotation> {
     return this.http.get<ApiResponse<Quotation>>(`${this.apiUrl}/${id}`).pipe(
       map(res => res.data)

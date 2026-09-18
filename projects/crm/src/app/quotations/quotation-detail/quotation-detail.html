@@ -23,15 +23,25 @@
           <span class="badge px-3 py-1-5 rounded-pill small fw-semibold" [ngClass]="getApprovalBadgeClass(q.approval_status)">
             {{ q.approval_status || 'Auto' }}
           </span>
-          <span class="badge bg-slate-100 text-slate-600 border">Version {{ q.version || 1 }}</span>
+          <span class="badge bg-dark text-white font-mono px-3 py-1-5 rounded-pill shadow-sm"><i class="bi bi-layers me-1"></i> Version {{ q.version || 1 }}.0</span>
         </div>
         <p class="text-slate-500 mb-0">Created on {{ q.created_at | date:'mediumDate' }} @if (q.creator) { by {{ q.creator.name }} }</p>
       </div>
 
       <div class="d-flex flex-wrap gap-2">
-        <a routerLink="/quotations" class="btn btn-outline-secondary">
+        <a [routerLink]="['/quotations']" [queryParams]="{ tab: returnTab(), highlight: q.id }" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-left"></i> Back
         </a>
+
+        @if (isManagerOrAdmin() && q.approval_status === 'pending_approval') {
+          <button type="button" class="btn btn-success fw-bold shadow-sm" (click)="openApprovalModal('approve')" [disabled]="isActionLoading()">
+            <i class="bi bi-check-lg me-1"></i> Approve Quotation
+          </button>
+          <button type="button" class="btn btn-danger fw-bold shadow-sm" (click)="openApprovalModal('reject')" [disabled]="isActionLoading()">
+            <i class="bi bi-x-lg me-1"></i> Reject (Revision)
+          </button>
+        }
+
         <button type="button" class="btn btn-outline-danger" (click)="downloadPdf()" [disabled]="q.approval_status === 'pending_approval'" title="Download PDF (Locked if Pending Approval)">
           <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
         </button>
@@ -93,8 +103,8 @@
         </div>
         @if (isManagerOrAdmin()) {
           <div class="d-flex gap-2 mt-3 mt-md-0">
-            <button class="btn btn-success fw-bold px-3 shadow-sm" (click)="approveQuotation()" [disabled]="isActionLoading()"><i class="bi bi-check-lg me-1"></i> Approve Quotation</button>
-            <button class="btn btn-outline-danger fw-bold px-3" (click)="rejectInternal()" [disabled]="isActionLoading()"><i class="bi bi-x-circle me-1"></i> Reject with Reason</button>
+            <button class="btn btn-success fw-bold px-3 shadow-sm" (click)="openApprovalModal('approve')" [disabled]="isActionLoading()"><i class="bi bi-check-lg me-1"></i> Approve Quotation</button>
+            <button class="btn btn-danger fw-bold px-3 shadow-sm" (click)="openApprovalModal('reject')" [disabled]="isActionLoading()"><i class="bi bi-x-circle me-1"></i> Reject with Reason</button>
           </div>
         }
       </div>
@@ -111,7 +121,15 @@
           @if (q.approver) { by <strong>{{ q.approver.name }}</strong> }
           @if (q.approved_at) { on {{ q.approved_at | date:'medium' }} }
         </div>
-        <span class="badge bg-success px-3 py-1-5">Ready for Client</span>
+        @if (q.converted_booking_id) {
+          <span class="badge bg-dark text-white px-3 py-1-5"><i class="bi bi-check2-all me-1"></i> Booking Confirmed</span>
+        } @else if (q.status === 'accepted') {
+          <span class="badge bg-success text-white px-3 py-1-5"><i class="bi bi-check-circle me-1"></i> Accepted by Client</span>
+        } @else if (q.status === 'sent') {
+          <span class="badge bg-primary text-white px-3 py-1-5"><i class="bi bi-send me-1"></i> Sent to Client</span>
+        } @else {
+          <span class="badge bg-success text-white px-3 py-1-5"><i class="bi bi-box-arrow-up-right me-1"></i> Ready for Client</span>
+        }
       </div>
     }
 
@@ -191,7 +209,21 @@
                       <td class="ps-3 text-slate-400">{{ $index + 1 }}</td>
                       <td>
                         <div class="fw-semibold text-slate-800">{{ item.description }}</div>
-                        <span class="badge bg-slate-100 text-slate-600 border text-xs uppercase">{{ item.item_type }}</span>
+                        <div class="mt-1">
+                          @if (item.item_type === 'hotel') {
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;"><i class="bi bi-building me-1"></i> Hotel Stay</span>
+                          } @else if (item.item_type === 'resort') {
+                            <span class="badge bg-success-subtle text-success border border-success-subtle uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;"><i class="bi bi-tree me-1"></i> Resort Stay</span>
+                          } @else if (item.item_type === 'villa') {
+                            <span class="badge bg-purple-subtle text-purple-emphasis border border-purple-subtle uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;"><i class="bi bi-house-door me-1"></i> Villa Rental</span>
+                          } @else if (item.item_type === 'package') {
+                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;"><i class="bi bi-box me-1"></i> Tour Package</span>
+                          } @else if (item.item_type === 'cab') {
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;"><i class="bi bi-car-front me-1"></i> Cab / Transport</span>
+                          } @else {
+                            <span class="badge bg-light text-dark border uppercase px-2 py-0-5 fw-bold" style="font-size: 10px;">{{ item.item_type }}</span>
+                          }
+                        </div>
                       </td>
                       <td class="text-center small text-slate-600">
                         {{ item.quantity || item.qty || 1 }} Pax
@@ -336,5 +368,58 @@
       </div>
 
     </div>
+
+    <!-- Manager Approval / Rejection Modal -->
+    @if (activeModalAction()) {
+      <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" role="dialog">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow-lg border-0 rounded-3">
+            <div class="modal-header border-bottom p-3" [class.bg-success-subtle]="activeModalAction() === 'approve'" [class.bg-danger-subtle]="activeModalAction() === 'reject'">
+              <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+                @if (activeModalAction() === 'approve') {
+                  <i class="bi bi-check-circle-fill text-success fs-4"></i> Approve Quotation #{{ q.quotation_no }}
+                } @else {
+                  <i class="bi bi-exclamation-octagon-fill text-danger fs-4"></i> Reject Quotation #{{ q.quotation_no }}
+                }
+              </h5>
+              <button type="button" class="btn-close" (click)="closeModal()"></button>
+            </div>
+            <div class="modal-body p-4">
+              <div class="mb-3 p-3 bg-light rounded border">
+                <div class="row g-2 text-sm">
+                  <div class="col-6"><strong>Customer:</strong> {{ q.customer_name || 'Valued Client' }}</div>
+                  <div class="col-6"><strong>Destination:</strong> {{ q.destination || 'Custom Tour' }}</div>
+                  <div class="col-6"><strong>Total Amount:</strong> ₹{{ q.final_amount | number:'1.2-2' }}</div>
+                  <div class="col-6"><strong>Version:</strong> v{{ q.version || 1 }}.0</div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-bold text-slate-700">
+                  @if (activeModalAction() === 'approve') {
+                    Approval Comments / Internal Note (Optional)
+                  } @else {
+                    Rejection Reason / Revision Feedback <span class="text-danger">*</span>
+                  }
+                </label>
+                <textarea class="form-control" rows="3" [ngModel]="modalComments()" (ngModelChange)="modalComments.set($event)" placeholder="Enter feedback for sales executive or internal audit trail..."></textarea>
+              </div>
+            </div>
+            <div class="modal-footer border-top p-3 bg-light">
+              <button type="button" class="btn btn-outline-secondary" (click)="closeModal()" [disabled]="isActionLoading()">Cancel</button>
+              <button type="button" class="btn fw-bold px-4" [class.btn-success]="activeModalAction() === 'approve'" [class.btn-danger]="activeModalAction() === 'reject'" (click)="submitModalAction()" [disabled]="isActionLoading()">
+                @if (isActionLoading()) {
+                  <span class="spinner-border spinner-border-sm me-2"></span> Processing...
+                } @else if (activeModalAction() === 'approve') {
+                  <i class="bi bi-check-lg me-1"></i> Confirm Approval
+                } @else {
+                  <i class="bi bi-x-lg me-1"></i> Submit Rejection
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
   }
 </div>

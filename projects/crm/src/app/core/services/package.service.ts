@@ -25,6 +25,11 @@ export class PackageService {
     return this.http.get<PaginatedResponse<Package>>(this.apiUrl, { params: httpParams });
   }
 
+  getPackage(id: number | string): Observable<ApiResponse<Package>> {
+    return this.http.get<ApiResponse<Package>>(`${this.apiUrl}/${id}`);
+  }
+
+
   createPackage(data: CreatePackageDto): Observable<ApiResponse<Package>> {
     return this.http.post<ApiResponse<Package>>(this.apiUrl, data);
   }

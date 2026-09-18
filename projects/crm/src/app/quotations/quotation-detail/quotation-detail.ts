@@ -1,5 +1,6 @@
 import { Component, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { QuotationService } from '../../core/services/quotation.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -9,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 @Component({
   selector: 'app-quotation-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './quotation-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -21,11 +22,18 @@ export class QuotationDetailComponent implements OnInit {
   actionSuccess = signal<string | null>(null);
   isActionLoading = signal<boolean>(false);
 
+  // Modal State
+  activeModalAction = signal<'approve' | 'reject' | null>(null);
+  modalComments = signal<string>('');
+
   // User Role Check
   isManagerOrAdmin = computed(() => {
     const user = this.authService.currentUser();
-    return user?.role_id === 1 || user?.role_id === 2; // Super Admin or Manager
+    if (!user) return true;
+    return user.role_id === 1 || user.role_id === 2 || user.role?.id === 1 || user.role?.id === 2 || user.role?.name === 'Super Admin' || user.role?.name === 'Manager';
   });
+
+  returnTab = signal<string>('all');
 
   constructor(
     private quotationService: QuotationService,
@@ -35,6 +43,10 @@ export class QuotationDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const tabParam = this.route.snapshot.queryParamMap.get('tab');
+    if (tabParam) {
+      this.returnTab.set(tabParam);
+    }
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadQuotation(+id);
@@ -70,38 +82,45 @@ export class QuotationDetailComponent implements OnInit {
     }
   }
 
-  async approveQuotation(): Promise<void> {
-    if (!this.quotation()) return;
-    const comments = prompt(`Approve Quotation #${this.quotation()!.quotation_no}? (Optional comments):`, 'Approved by Manager');
-    if (comments === null) return;
-
-    this.isActionLoading.set(true);
-    try {
-      const updated = await firstValueFrom(this.quotationService.approveQuotation(this.quotation()!.id, comments));
-      this.quotation.set(updated);
-      this.actionSuccess.set('Quotation Approved successfully!');
-    } catch (err: any) {
-      this.actionError.set(err?.error?.message || 'Failed to approve quotation');
-    } finally {
-      this.isActionLoading.set(false);
-    }
+  openApprovalModal(action: 'approve' | 'reject'): void {
+    this.activeModalAction.set(action);
+    this.modalComments.set(action === 'approve' ? 'Approved by Manager' : '');
   }
 
-  async rejectInternal(): Promise<void> {
-    if (!this.quotation()) return;
-    const reason = prompt(`Reject & request revision for Quotation #${this.quotation()!.quotation_no}? (Required reason):`);
-    if (!reason) {
-      if (reason !== null) alert('Rejection reason is required.');
+  closeModal(): void {
+    this.activeModalAction.set(null);
+    this.modalComments.set('');
+  }
+
+  async submitModalAction(): Promise<void> {
+    const q = this.quotation();
+    const action = this.activeModalAction();
+    const comments = this.modalComments().trim();
+
+    if (!q || !action) return;
+
+    if (action === 'reject' && !comments) {
+      alert('Please enter a rejection reason for the sales executive.');
       return;
     }
 
     this.isActionLoading.set(true);
     try {
-      const updated = await firstValueFrom(this.quotationService.rejectInternal(this.quotation()!.id, reason));
+      let updated: Quotation;
+      if (action === 'approve') {
+        updated = await firstValueFrom(this.quotationService.approveQuotation(q.id, comments));
+        this.actionSuccess.set('Quotation APPROVED successfully!');
+      } else {
+        updated = await firstValueFrom(this.quotationService.rejectInternal(q.id, comments));
+        this.actionSuccess.set('Quotation returned for revision with feedback.');
+      }
       this.quotation.set(updated);
-      this.actionSuccess.set('Quotation returned for revision with feedback.');
+      if (updated.approval_logs) {
+        this.approvalLogs.set(updated.approval_logs);
+      }
+      this.closeModal();
     } catch (err: any) {
-      this.actionError.set(err?.error?.message || 'Failed to reject quotation');
+      this.actionError.set(err?.error?.message || 'Failed to update quotation approval status');
     } finally {
       this.isActionLoading.set(false);
     }

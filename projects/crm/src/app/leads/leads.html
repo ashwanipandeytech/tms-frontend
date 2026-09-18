@@ -187,7 +187,7 @@
 
       <ng-template appColumn="status" header="Status" let-row>
         <span class="badge rounded-pill px-3 py-2 fw-bold" [ngClass]="getStatusBadge(row.status)">
-          {{ row.status | titlecase }}
+          {{ getStatusLabel(row.status) }}
         </span>
       </ng-template>
 

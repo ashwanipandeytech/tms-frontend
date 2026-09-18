@@ -62,9 +62,14 @@ export class LeadsComponent implements OnInit {
     { key: 'contacted', label: 'Contacted', badge: 'bg-info text-white' },
     { key: 'followup', label: 'Follow-Up', badge: 'bg-warning text-dark' },
     { key: 'interested', label: 'Interested', badge: 'bg-indigo text-white' },
-    { key: 'quotation_sent', label: 'Quotation Sent', badge: 'bg-purple text-white' },
-    { key: 'negotiation', label: 'Negotiation', badge: 'bg-orange text-white' },
+    { key: 'quotation_pending_approval', label: 'Quotation Pending Approval', badge: 'bg-warning text-dark border border-warning' },
+    { key: 'quotation_approved', label: 'Quotation Approved', badge: 'bg-info text-white border border-info' },
+    { key: 'quotation_revision_needed', label: 'Quotation Revision Needed', badge: 'bg-danger-subtle text-danger border border-danger' },
+    { key: 'quotation_sent', label: 'Quotation Sent', badge: 'bg-primary-subtle text-primary border border-primary' },
+    { key: 'quotation_accepted', label: 'Quotation Accepted', badge: 'bg-success-subtle text-success border border-success' },
+    { key: 'negotiation', label: 'Negotiation', badge: 'bg-warning-subtle text-dark border border-warning' },
     { key: 'confirmed', label: 'Confirmed / Won', badge: 'bg-success text-white' },
+    { key: 'booking_confirmed', label: 'Booking Confirmed', badge: 'bg-success text-white' },
     { key: 'lost', label: 'Lost', badge: 'bg-danger text-white' },
   ];
 
@@ -373,8 +378,22 @@ export class LeadsComponent implements OnInit {
   }
 
   getStatusBadge(status: string): string {
+    const key = status?.toLowerCase() || '';
+    const match = this.statusOptions.find(s => s.key === key);
+    if (match) return match.badge;
+    if (key.includes('approved')) return 'bg-info text-white';
+    if (key.includes('pending')) return 'bg-warning text-dark';
+    if (key.includes('sent')) return 'bg-primary text-white';
+    if (key.includes('accepted') || key.includes('confirmed')) return 'bg-success text-white';
+    if (key.includes('reject') || key.includes('revision') || key.includes('lost')) return 'bg-danger text-white';
+    return 'bg-secondary text-white';
+  }
+
+  getStatusLabel(status: string): string {
     const match = this.statusOptions.find(s => s.key === status?.toLowerCase());
-    return match ? match.badge : 'bg-secondary';
+    if (match) return match.label;
+    if (!status) return 'New Lead';
+    return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   getSourceIcon(source?: string): string {

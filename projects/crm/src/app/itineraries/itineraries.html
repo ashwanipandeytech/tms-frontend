@@ -4,226 +4,400 @@
   <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 gap-3">
     <div>
       <h3 class="mb-1 fw-bold text-slate-800 d-flex align-items-center gap-2">
-        Itineraries
-        <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium fs-6 px-3">{{packagesResource.value()?.data?.length || 0}} Total</span>
+        <i class="bi bi-journal-bookmark-fill text-primary"></i> Master Activity Catalog & Itineraries
       </h3>
-      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Plan and organize trip schedules for your clients.</p>
+      <p class="text-slate-500 mb-0" style="font-size: 0.95rem;">Manage reusable sightseeing tours, activity libraries, and client trip schedules.</p>
     </div>
 
-    <div class="d-flex align-items-center gap-3">
-      <div class="input-group shadow-sm rounded-3 overflow-hidden" style="width: 280px;">
-        <span class="input-group-text bg-white border-0 text-muted ps-3 pe-2">
-          <i class="bi bi-search"></i>
-        </span>
-        <input type="text" class="form-control border-0 py-2 ps-1 text-slate-700" placeholder="Search itineraries..." style="box-shadow: none;">
-      </div>
-
-      <button class="btn btn-primary d-flex align-items-center gap-2 rounded-3 px-4 py-2 fw-semibold shadow-sm transition-all hover-lift" type="button" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showAdd()">
-        <i class="bi bi-plus-lg"></i> Add Itinerary
+    <!-- Navigation Tabs -->
+    <div class="d-flex align-items-center gap-2 bg-slate-100 p-1 rounded-3">
+      <button type="button" class="btn btn-sm fw-bold px-3 py-1-5 rounded-2"
+              [ngClass]="activeTab() === 'catalog' ? 'btn-white text-primary shadow-sm' : 'text-slate-600'"
+              (click)="setTab('catalog')">
+        <i class="bi bi-collection me-1"></i> Master Activity Catalog
+      </button>
+      <button type="button" class="btn btn-sm fw-bold px-3 py-1-5 rounded-2"
+              [ngClass]="activeTab() === 'itineraries' ? 'btn-white text-primary shadow-sm' : 'text-slate-600'"
+              (click)="setTab('itineraries')">
+        <i class="bi bi-map me-1"></i> Master Package Itineraries
       </button>
     </div>
   </div>
 
-  <!-- Table Card -->
-  <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
-        <thead class="bg-slate-50">
-          <tr>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Title</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Duration</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Price</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Status</th>
-            <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4 border-bottom-0" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="border-top-0">
-          @for (item of packagesResource.value()?.data || []; track item) {
-            <tr class="border-bottom border-light align-middle group">
-              <td class="ps-4 py-3">
-                <div class="d-flex align-items-center gap-3">
-                  <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                    <i class="bi bi-map"></i>
-                  </div>
-                  <span class="text-slate-800 fw-bold">{{item.name}}</span>
-                </div>
-              </td>
-              <td class="py-3">
-                <span class="text-slate-700 fw-medium">{{item.days || 0}} Days / {{item.nights || 0}} Nights</span>
-              </td>
-              <td class="py-3">
-                <span class="text-slate-700 fw-medium font-monospace">₹{{item.price || 0}}</span>
-              </td>
-              <td class="py-3">
-                <span class="badge rounded-pill" [ngClass]="item.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'">{{item.status | titlecase}}</span>
-              </td>
-              <td class="py-3 text-end pe-4">
-                <div class="d-flex justify-content-end gap-1">
-                  <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showEdit(item)" title="Edit">
-                    <i class="bi bi-pencil-square fs-6"></i>
-                  </button>
-                  <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteItineraryModal" (click)="confirmDelete(item)">
-                    <i class="bi bi-trash3 fs-6"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="card-footer bg-white border-top p-3 d-flex justify-content-between align-items-center">
-      <span class="text-slate-500" style="font-size: 0.85rem;">Showing {{(packagesResource.value()?.data?.length || 0) > 0 ? 1 : 0}} to {{packagesResource.value()?.data?.length || 0}} of {{packagesResource.value()?.data?.length || 0}} entries</span>
-      <nav aria-label="Page navigation">
-        <ul class="pagination pagination-sm mb-0">
-          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Previous</a></li>
-          <li class="page-item active"><a class="page-link border-0 rounded-2 bg-primary text-white mx-1" href="javascript:void(0)">1</a></li>
-          <li class="page-item disabled"><a class="page-link border-0 text-slate-400" href="javascript:void(0)">Next</a></li>
-        </ul>
-      </nav>
-    </div>
-  </div>
-</div>
+  <!-- TAB 1: MASTER ACTIVITY CATALOG HUB -->
+  @if (activeTab() === 'catalog') {
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+      <div class="card-header bg-white border-bottom p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <!-- Approval Status Filter -->
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn fw-semibold" [ngClass]="catalogFilterStatus() === 'approved' ? 'btn-primary' : 'btn-outline-secondary'" (click)="catalogFilterStatus.set('approved'); loadCatalog()">
+              Approved Catalog
+            </button>
+            <button type="button" class="btn fw-semibold" [ngClass]="catalogFilterStatus() === 'pending_approval' ? 'btn-warning text-dark' : 'btn-outline-secondary'" (click)="catalogFilterStatus.set('pending_approval'); loadCatalog()">
+              Pending Approval @if (catalogFilterStatus() === 'pending_approval') { <span class="badge bg-dark ms-1">Review</span> }
+            </button>
+          </div>
 
-<!-- Add/Edit Itinerary Offcanvas (Drawer) -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="itineraryFormOffcanvas" style="width: 1000px; border-left: none; box-shadow: -10px 0 40px rgba(0,0,0,0.08);">
-
-  <div class="offcanvas-header border-bottom px-4 py-3 bg-light d-flex align-items-center justify-content-between">
-    <div class="d-flex align-items-center gap-3">
-      <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-        <i class="bi bi-map fs-5"></i>
-      </div>
-      <div>
-        <h5 class="offcanvas-title fw-bold text-slate-800 mb-0 lh-1">{{ view() === 'add' ? 'Create New Itinerary' : 'Edit Itinerary Details' }}</h5>
-        <small class="text-slate-500">{{ view() === 'add' ? 'Start planning a trip schedule.' : 'Update the title or linked packages.' }}</small>
-      </div>
-    </div>
-    <button type="button" class="btn-close text-reset shadow-none" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-  </div>
-
-  <div class="offcanvas-body p-4 p-md-5 bg-white" style="overflow-y: auto;">
-    <form class="row g-4" [formGroup]="itineraryForm">
-
-      <div class="col-12"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Trip Overview</h6></div>
-
-      <!-- Title -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Itinerary Title <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-type"></i></span>
-          <input type="text" class="form-control bg-light border-0 py-2 fw-medium text-slate-800 fs-5" formControlName="name" placeholder="e.g. DELHI TO UTTARAKHAND" [ngClass]="{'border border-danger': itineraryForm.get('name')?.invalid && itineraryForm.get('name')?.touched}">
+          <!-- Destination Filter -->
+          <input type="text" class="form-control form-control-sm bg-light" placeholder="Filter by Destination..." style="max-width: 200px;" [value]="catalogFilterDestination()" (input)="catalogFilterDestination.set($any($event.target).value); loadCatalog()">
         </div>
-        @if (itineraryForm.get('name')?.invalid && itineraryForm.get('name')?.touched) {
-          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Title is required</div>
-        }
-      </div>
 
-      <!-- Duration (Days / Nights) -->
-      <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Duration (Days)</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-calendar-day"></i></span>
-          <input type="number" class="form-control bg-light border-0 py-2" formControlName="days" min="0">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Duration (Nights)</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-moon"></i></span>
-          <input type="number" class="form-control bg-light border-0 py-2" formControlName="nights" min="0">
-        </div>
-      </div>
-
-      <!-- IDs (Destination / Category) -->
-      <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Destination ID</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-geo-alt"></i></span>
-          <input type="number" class="form-control bg-light border-0 py-2" formControlName="destination_id" min="1">
-        </div>
-      </div>
-      <div class="col-md-6">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Category ID</label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted"><i class="bi bi-tags"></i></span>
-          <input type="number" class="form-control bg-light border-0 py-2" formControlName="category_id" min="1">
-        </div>
-      </div>
-
-      <!-- Price -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Package Price <span class="text-danger">*</span></label>
-        <div class="input-group">
-          <span class="input-group-text bg-light border-0 text-muted fw-bold">₹</span>
-          <input type="number" class="form-control bg-light border-0 py-2 fw-bold text-slate-800" formControlName="price" placeholder="0.00" [ngClass]="{'border border-danger': itineraryForm.get('price')?.invalid && itineraryForm.get('price')?.touched}">
-        </div>
-        @if (itineraryForm.get('price')?.invalid && itineraryForm.get('price')?.touched) {
-          <div class="text-danger small mt-1 fw-medium"><i class="bi bi-exclamation-circle me-1"></i> Price is required</div>
-        }
-      </div>
-
-      <div class="col-12 mt-4"><h6 class="text-slate-800 fw-bold mb-0 border-bottom pb-2">Terms & Details</h6></div>
-
-      <!-- Inclusions -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Inclusions</label>
-        <textarea class="form-control bg-light border-0 py-2" formControlName="inclusions" rows="2" placeholder="e.g. Breakfast, Sightseeing"></textarea>
-      </div>
-
-      <!-- Exclusions -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Exclusions</label>
-        <textarea class="form-control bg-light border-0 py-2" formControlName="exclusions" rows="2" placeholder="e.g. Flights, Personal Expenses"></textarea>
-      </div>
-
-      <!-- Terms -->
-      <div class="col-md-12">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Terms & Conditions</label>
-        <textarea class="form-control bg-light border-0 py-2" formControlName="terms" rows="2" placeholder="e.g. 50% advance required"></textarea>
-      </div>
-
-      <!-- Status -->
-      <div class="col-md-6 mt-3">
-        <label class="form-label text-slate-700 fw-medium mb-1 small">Status <span class="text-danger">*</span></label>
-        <select class="form-select bg-light border-0 py-2 text-slate-700 fw-bold" formControlName="status">
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-      </div>
-
-    </form>
-  </div>
-
-  <div class="offcanvas-footer border-top p-4 bg-light d-flex justify-content-end gap-3 z-3">
-    <button type="button" class="btn btn-white border px-4 py-2 fw-medium text-slate-600" data-bs-dismiss="offcanvas">Cancel</button>
-    <button type="button" class="btn btn-primary px-5 py-2 fw-medium shadow-sm d-flex align-items-center gap-2" (click)="saveItinerary()" [attr.data-bs-dismiss]="itineraryForm.valid ? 'offcanvas' : null">
-      <i class="bi bi-check2"></i> Save Itinerary
-    </button>
-  </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteItineraryModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-      <div class="modal-header border-bottom-0 pb-0 bg-white">
-        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center px-5 pt-0 pb-4">
-        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-danger-subtle text-danger mb-4" style="width: 80px; height: 80px;">
-          <i class="bi bi-exclamation-triangle" style="font-size: 2.5rem;"></i>
-        </div>
-        <h4 class="fw-bold text-slate-800 mb-2">Delete Itinerary?</h4>
-        <p class="text-slate-500 mb-0">Are you sure you want to permanently delete the itinerary @if (itemToDelete) {
-          <strong class="text-slate-700">{{itemToDelete.name}}</strong>
-        }? This action cannot be undone.</p>
-      </div>
-      <div class="modal-footer border-top-0 d-flex justify-content-center gap-2 pb-4 bg-white">
-        <button type="button" class="btn btn-light fw-medium px-4 py-2 rounded-3" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-danger fw-medium px-4 py-2 shadow-sm rounded-3 d-flex align-items-center gap-2" data-bs-dismiss="modal" (click)="deleteItem()">
-          <i class="bi bi-trash3"></i> Yes, Delete
+        <button type="button" class="btn btn-primary btn-sm fw-bold px-3 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2" (click)="openAddMasterModal()">
+          <i class="bi bi-plus-circle-fill"></i> Add Master Activity
         </button>
       </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4" style="font-size: 0.75rem;">Activity Title</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Destination</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Category</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Duration</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Unit Cost</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Approval Status</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4" style="font-size: 0.75rem;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (isLoadingCatalog()) {
+              <tr>
+                <td colspan="7" class="text-center py-5 text-slate-500">
+                  <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div> Loading master activity catalog...
+                </td>
+              </tr>
+            } @else if (masterActivities().length === 0) {
+              <tr>
+                <td colspan="7" class="text-center py-5 text-slate-400">
+                  <i class="bi bi-journal-x fs-1 d-block mb-2 text-slate-300"></i>
+                  No master activities found matching criteria.
+                </td>
+              </tr>
+            } @else {
+              @for (act of masterActivities(); track act.id) {
+                <tr class="align-middle">
+                  <td class="ps-4 py-3">
+                    <div class="fw-bold text-slate-800">{{ act.title }}</div>
+                    @if (act.description) {
+                      <div class="text-slate-500 text-xs text-truncate" style="max-width: 320px;">{{ act.description }}</div>
+                    }
+                  </td>
+                  <td class="py-3">
+                    <span class="badge bg-light border fw-semibold px-2 py-1 text-dark" style="color: #0f172a !important; background-color: #f1f5f9 !important; border-color: #cbd5e1 !important;">
+                      <i class="bi bi-geo-alt-fill me-1 text-primary"></i>{{ act.destination }}
+                    </span>
+                  </td>
+                  <td class="py-3">
+                    <span class="badge bg-primary-subtle text-primary fw-medium">{{ act.category || 'Sightseeing' }}</span>
+                  </td>
+                  <td class="py-3 text-slate-700 text-sm">
+                    <i class="bi bi-clock me-1 text-slate-400"></i>{{ act.duration_minutes || 120 }} mins
+                  </td>
+                  <td class="py-3 font-monospace fw-bold text-slate-800">
+                    ₹{{ act.unit_cost || 0 | number:'1.2-2' }}
+                  </td>
+                  <td class="py-3">
+                    <span class="badge rounded-pill"
+                          [ngClass]="{
+                            'bg-success-subtle text-success': act.approval_status === 'approved',
+                            'bg-warning-subtle text-warning': act.approval_status === 'pending_approval',
+                            'bg-danger-subtle text-danger': act.approval_status === 'rejected'
+                          }">
+                      {{ act.approval_status | uppercase }}
+                    </span>
+                  </td>
+                  <td class="py-3 text-end pe-4">
+                    @if (act.approval_status === 'pending_approval' && isManagerOrAdmin()) {
+                      <button type="button" class="btn btn-sm btn-success fw-bold me-1 py-0-5 px-2 text-xs" (click)="approveActivity(act.id!)">
+                        <i class="bi bi-check-lg me-1"></i> Approve
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger fw-bold py-0-5 px-2 text-xs" (click)="rejectActivity(act.id!)">
+                        <i class="bi bi-x-lg me-1"></i> Reject
+                      </button>
+                    } @else {
+                      <span class="text-xs text-slate-400">Ready for Use</span>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
+  }
+
+  <!-- TAB 2: MASTER PACKAGE ITINERARIES -->
+  @if (activeTab() === 'itineraries') {
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+      <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold text-slate-800 mb-0">Master Day-by-Day Package Itineraries</h5>
+        <button class="btn btn-primary btn-sm fw-bold px-3 py-2 rounded-3 shadow-sm d-flex align-items-center gap-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showAdd()">
+          <i class="bi bi-plus-lg"></i> Add New Package Itinerary
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" style="min-width: 800px;">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3 ps-4" style="font-size: 0.75rem;">Title</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Duration</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Package Price</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3" style="font-size: 0.75rem;">Status</th>
+              <th class="fw-semibold text-slate-500 text-uppercase py-3 text-end pe-4" style="font-size: 0.75rem;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of packagesResource.value()?.data || []; track item.id) {
+              <tr class="align-middle">
+                <td class="ps-4 py-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      <i class="bi bi-map"></i>
+                    </div>
+                    <span class="text-slate-800 fw-bold">{{item.name}}</span>
+                  </div>
+                </td>
+                <td class="py-3">
+                  <span class="text-slate-700 fw-medium">{{item.days || 1}} Days / {{item.nights || 0}} Nights</span>
+                </td>
+                <td class="py-3">
+                  <span class="text-slate-700 fw-medium font-monospace">₹{{item.price || 0 | number:'1.2-2'}}</span>
+                </td>
+                <td class="py-3">
+                  <span class="badge rounded-pill" [ngClass]="item.status === 'active' ? 'text-bg-success' : 'text-bg-secondary'">{{item.status | titlecase}}</span>
+                </td>
+                <td class="py-3 text-end pe-4">
+                  <div class="d-flex justify-content-end gap-1">
+                    <button class="btn btn-sm btn-light text-slate-600 hover-bg-primary hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" data-bs-toggle="offcanvas" data-bs-target="#itineraryFormOffcanvas" (click)="showEdit(item)" title="Edit">
+                      <i class="bi bi-pencil-square fs-6"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light text-danger hover-bg-danger hover-text-white transition-all rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Delete" data-bs-toggle="modal" data-bs-target="#deleteItineraryModal" (click)="confirmDelete(item)">
+                      <i class="bi bi-trash3 fs-6"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- Modal: Add Master Activity -->
+@if (showAddMasterModal()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Add Master Activity to Catalog</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeAddMasterModal()"></button>
+        </div>
+        <form [formGroup]="masterForm" (ngSubmit)="saveMasterActivity()">
+          <div class="modal-body p-4">
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label class="form-label text-slate-700 fw-medium small">Activity Title <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="title" placeholder="e.g. Petronas Twin Towers & City Tour">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-slate-700 fw-medium small">Destination <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" formControlName="destination" placeholder="e.g. Malaysia">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-slate-700 fw-medium small">Category</label>
+                <select class="form-select" formControlName="category">
+                  <option value="Sightseeing">Sightseeing</option>
+                  <option value="Transfer">Transfer</option>
+                  <option value="Adventure">Adventure</option>
+                  <option value="Water Sports">Water Sports</option>
+                  <option value="Cruise & Dining">Cruise & Dining</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-slate-700 fw-medium small">Duration (Minutes)</label>
+                <input type="number" class="form-control" formControlName="duration_minutes" min="15">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label text-slate-700 fw-medium small">Unit Cost (₹)</label>
+                <input type="number" class="form-control" formControlName="unit_cost" min="0">
+              </div>
+
+              <div class="col-12">
+                <label class="form-label text-slate-700 fw-medium small">Description</label>
+                <textarea class="form-control" rows="3" formControlName="description" placeholder="Provide detailed activity itinerary plan and highlights..."></textarea>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-slate-700 fw-medium small">Inclusions (Comma-separated)</label>
+                <input type="text" class="form-control" formControlName="inclusions" placeholder="AC Vehicle, Entry Tickets, Guide">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label text-slate-700 fw-medium small">Exclusions (Comma-separated)</label>
+                <input type="text" class="form-control" formControlName="exclusions" placeholder="Lunch, Personal Expenses">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button type="button" class="btn btn-secondary btn-sm" (click)="closeAddMasterModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary btn-sm fw-bold">Publish to Catalog</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Modal: Select Master Activity for Day -->
+@if (showSelectCatalogModal()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5); z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title fw-bold"><i class="bi bi-journal-bookmark me-2"></i> Select Activity from Master Catalog</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="showSelectCatalogModal.set(false)"></button>
+        </div>
+        <div class="modal-body p-3">
+          @if (masterActivities().length === 0) {
+            <div class="text-center py-4 text-slate-500">No master activities found in catalog.</div>
+          } @else {
+            <div class="list-group">
+              @for (act of masterActivities(); track act.id) {
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                  <div>
+                    <div class="fw-bold text-slate-800 fs-6">{{ act.title }}</div>
+                    <div class="text-xs text-slate-500 mb-1">
+                      <span class="badge bg-light text-dark border me-1">{{ act.category }}</span>
+                      <span class="me-2"><i class="bi bi-geo-alt me-1"></i>{{ act.destination }}</span>
+                      <span><i class="bi bi-clock me-1"></i>{{ act.duration_minutes }} mins</span>
+                    </div>
+                    @if (act.description) { <p class="mb-0 text-slate-600 text-xs">{{ act.description }}</p> }
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary fw-bold" (click)="insertActivityIntoDay(act)">
+                    <i class="bi bi-plus-lg me-1"></i> Insert Activity
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add/Edit Itinerary Drawer (With Day-by-Day Builder & Preset Tag Libraries) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="itineraryFormOffcanvas" style="width: 950px;">
+  <div class="offcanvas-header border-bottom px-4 py-3 bg-light">
+    <h5 class="offcanvas-title fw-bold text-slate-800">{{ view() === 'add' ? 'Create New Master Package Itinerary' : 'Edit Master Package Itinerary' }}</h5>
+    <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-4" [formGroup]="itineraryForm">
+    <div class="row g-3 mb-4">
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium small">Itinerary Title <span class="text-danger">*</span></label>
+        <input type="text" class="form-control fw-bold" formControlName="name" placeholder="e.g. 6 Days Romantic Kashmir Tour">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium small">Duration (Days)</label>
+        <input type="number" class="form-control" formControlName="days" min="1">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium small">Duration (Nights)</label>
+        <input type="number" class="form-control" formControlName="nights" min="0">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label text-slate-700 fw-medium small">Package Price (₹) <span class="text-danger">*</span></label>
+        <input type="number" class="form-control fw-bold" formControlName="price" placeholder="0.00">
+      </div>
+
+      <!-- PRESET INCLUSIONS TAGS -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium small">Inclusions (Click preset tags to toggle)</label>
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          @for (tag of presetInclusions; track tag) {
+            <button type="button" class="btn btn-xs rounded-pill"
+                    [ngClass]="(itineraryForm.get('inclusions')?.value || '').includes(tag) ? 'btn-success' : 'btn-outline-secondary'"
+                    (click)="togglePresetInclusion(tag)">
+              <i class="bi me-1" [ngClass]="(itineraryForm.get('inclusions')?.value || '').includes(tag) ? 'bi-check-circle-fill' : 'bi-plus-circle'"></i>{{ tag }}
+            </button>
+          }
+        </div>
+        <textarea class="form-control" rows="2" formControlName="inclusions"></textarea>
+      </div>
+
+      <!-- PRESET EXCLUSIONS TAGS -->
+      <div class="col-md-12">
+        <label class="form-label text-slate-700 fw-medium small">Exclusions (Click preset tags to toggle)</label>
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          @for (tag of presetExclusions; track tag) {
+            <button type="button" class="btn btn-xs rounded-pill"
+                    [ngClass]="(itineraryForm.get('exclusions')?.value || '').includes(tag) ? 'btn-danger' : 'btn-outline-secondary'"
+                    (click)="togglePresetExclusion(tag)">
+              <i class="bi me-1" [ngClass]="(itineraryForm.get('exclusions')?.value || '').includes(tag) ? 'bi-x-circle-fill' : 'bi-plus-circle'"></i>{{ tag }}
+            </button>
+          }
+        </div>
+        <textarea class="form-control" rows="2" formControlName="exclusions"></textarea>
+      </div>
+    </div>
+
+    <!-- DAY-BY-DAY ITINERARY BUILDER -->
+    <div class="card border border-primary-subtle shadow-sm rounded-3 bg-white mb-4">
+      <div class="card-header bg-primary-subtle border-bottom p-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-primary mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-calendar3"></i> Day-by-Day Schedule Builder
+        </h6>
+        <button type="button" class="btn btn-sm btn-primary fw-medium" (click)="addItineraryDay()">
+          <i class="bi bi-plus-circle me-1"></i> Add Day
+        </button>
+      </div>
+      <div class="card-body p-3">
+        <div formArrayName="itinerary_days">
+          @for (dayCtrl of itineraryDaysArray.controls; track $index) {
+            <div [formGroupName]="$index" class="p-3 mb-3 border rounded-3 bg-slate-50">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge bg-slate-800 text-white px-2-5 py-1">Day {{ dayCtrl.get('day_number')?.value }}</span>
+                  <button type="button" class="btn btn-sm btn-outline-info py-0-5 px-2 text-xs" (click)="openCatalogForDay($index)">
+                    <i class="bi bi-journal-bookmark me-1"></i> Insert from Master Catalog
+                  </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger border-0" (click)="removeItineraryDay($index)" title="Remove Day">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+
+              <div class="row g-2 mb-2">
+                <div class="col-8">
+                  <input type="text" class="form-control form-control-sm fw-semibold" formControlName="title" placeholder="Day Title (e.g. Arrival & Pahalgam Transfer)">
+                </div>
+                <div class="col-4">
+                  <input type="text" class="form-control form-control-sm" formControlName="meals" placeholder="Meals (e.g. Breakfast, Dinner)">
+                </div>
+              </div>
+
+              <div>
+                <textarea class="form-control form-control-sm" rows="2" formControlName="description" placeholder="Activities, sightseeing plan, hotel stay details..."></textarea>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="offcanvas-footer border-top p-3 bg-light text-end">
+    <button type="button" class="btn btn-secondary btn-sm me-2" data-bs-dismiss="offcanvas">Cancel</button>
+    <button type="button" class="btn btn-primary btn-sm fw-bold px-4" (click)="saveItinerary()" [attr.data-bs-dismiss]="itineraryForm.valid ? 'offcanvas' : null">
+      <i class="bi bi-check2"></i> Save Master Package Itinerary
+    </button>
   </div>
 </div>

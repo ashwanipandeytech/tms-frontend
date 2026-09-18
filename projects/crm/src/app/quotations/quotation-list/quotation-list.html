@@ -22,7 +22,7 @@
           </div>
           <div>
             <div class="text-slate-500 small fw-medium">Pending Manager Approval</div>
-            <div class="fs-4 fw-bold text-warning-emphasis">{{ pendingApprovalCount() }}</div>
+            <div class="fs-4 fw-bold text-warning-emphasis">{{ counts().pending_approval }}</div>
           </div>
         </div>
       </div>
@@ -36,7 +36,7 @@
           </div>
           <div>
             <div class="text-slate-500 small fw-medium">Sent to Customers</div>
-            <div class="fs-4 fw-bold text-blue-600">{{ sentCount() }}</div>
+            <div class="fs-4 fw-bold text-blue-600">{{ counts().sent }}</div>
           </div>
         </div>
       </div>
@@ -50,7 +50,7 @@
           </div>
           <div>
             <div class="text-slate-500 small fw-medium">Accepted / Converted</div>
-            <div class="fs-4 fw-bold text-emerald-600">{{ acceptedCount() }}</div>
+            <div class="fs-4 fw-bold text-emerald-600">{{ counts().accepted }}</div>
           </div>
         </div>
       </div>
@@ -64,7 +64,7 @@
           </div>
           <div>
             <div class="text-slate-500 small fw-medium">Pipeline Value</div>
-            <div class="fs-5 fw-bold text-purple-700">₹{{ totalPipelineValue() | number:'1.2-2' }}</div>
+            <div class="fs-5 fw-bold text-purple-700">₹{{ counts().pipeline_value | number:'1.2-2' }}</div>
           </div>
         </div>
       </div>
@@ -95,8 +95,8 @@
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'all'" (click)="setTab('all')">All</button>
           <button class="nav-link px-3 py-1-5 text-sm font-medium position-relative" [class.active]="activeTab() === 'pending_approval'" (click)="setTab('pending_approval')">
             Pending Approval
-            @if (pendingApprovalCount() > 0) {
-              <span class="badge rounded-pill bg-danger ms-1">{{ pendingApprovalCount() }}</span>
+            @if (counts().pending_approval > 0) {
+              <span class="badge rounded-pill bg-danger ms-1">{{ counts().pending_approval }}</span>
             }
           </button>
           <button class="nav-link px-3 py-1-5 text-sm font-medium" [class.active]="activeTab() === 'approved'" (click)="setTab('approved')">Approved</button>
@@ -144,10 +144,10 @@
             </tr>
           } @else {
             @for (q of quotations(); track q.id) {
-              <tr>
+              <tr [class.table-warning]="highlightId() === q.id" [class.border-start]="highlightId() === q.id" [class.border-4]="highlightId() === q.id" [class.border-warning]="highlightId() === q.id">
                 <td class="ps-4 font-mono fw-bold text-primary">
-                  <a [routerLink]="['/quotations/detail', q.id]" class="text-decoration-none">{{ q.quotation_no }}</a>
-                  <div class="small text-slate-400 font-sans">Ver. {{ q.version || 1 }}</div>
+                  <a [routerLink]="['/quotations/detail', q.id]" [queryParams]="{ tab: activeTab(), highlight: q.id }" class="text-decoration-none fw-bold">{{ q.quotation_no }}</a>
+                  <div class="mt-1"><span class="badge bg-dark text-white font-mono px-2 py-0-5 rounded" style="font-size: 11px;">v{{ q.version || 1 }}.0</span></div>
                 </td>
                 <td>
                   <div class="fw-semibold text-slate-800">{{ q.customer_name || q.lead?.name || 'Valued Customer' }}</div>
@@ -198,21 +198,21 @@
                 </td>
                 <td class="text-end pe-4">
                   <div class="btn-group btn-group-sm">
-                    <a [routerLink]="['/quotations/detail', q.id]" class="btn btn-outline-secondary" title="View Details">
+                    <a [routerLink]="['/quotations/detail', q.id]" [queryParams]="{ tab: activeTab(), highlight: q.id }" class="btn btn-outline-secondary" title="View Details">
                       <i class="bi bi-eye"></i>
                     </a>
 
-                    <!-- Manager Approval Controls -->
+                    <!-- Manager Approval Controls with Modal -->
                     @if (isManagerOrAdmin() && q.approval_status === 'pending_approval') {
-                      <button type="button" class="btn btn-success" (click)="approveQuotation(q)" title="Approve Quotation">
-                        <i class="bi bi-check-lg"></i> Approve
+                      <button type="button" class="btn btn-outline-success" (click)="openApprovalModal(q, 'approve')" title="Approve Quotation">
+                        <i class="bi bi-check-lg"></i>
                       </button>
-                      <button type="button" class="btn btn-danger" (click)="rejectInternal(q)" title="Reject & Request Revision">
+                      <button type="button" class="btn btn-outline-danger" (click)="openApprovalModal(q, 'reject')" title="Reject & Request Revision">
                         <i class="bi bi-x-lg"></i>
                       </button>
                     }
 
-                    <a [routerLink]="['/quotations/edit', q.id]" class="btn btn-outline-secondary" title="Edit Draft">
+                    <a [routerLink]="['/quotations/edit', q.id]" [queryParams]="{ tab: activeTab(), highlight: q.id }" class="btn btn-outline-secondary" title="Edit Draft">
                       <i class="bi bi-pencil"></i>
                     </a>
 
@@ -259,4 +259,55 @@
       </table>
     </div>
   </div>
+
+  <!-- Manager Approval / Rejection Modal -->
+  @if (activeModalQuotation()) {
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);" role="dialog">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0 rounded-3">
+          <div class="modal-header border-bottom p-3" [class.bg-success-subtle]="activeModalAction() === 'approve'" [class.bg-danger-subtle]="activeModalAction() === 'reject'">
+            <h5 class="modal-title fw-bold text-slate-800 d-flex align-items-center gap-2">
+              @if (activeModalAction() === 'approve') {
+                <i class="bi bi-check-circle-fill text-success fs-4"></i> Approve Quotation #{{ activeModalQuotation()?.quotation_no }}
+              } @else {
+                <i class="bi bi-exclamation-octagon-fill text-danger fs-4"></i> Reject Quotation #{{ activeModalQuotation()?.quotation_no }}
+              }
+            </h5>
+            <button type="button" class="btn-close" (click)="closeModal()"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="mb-3 p-3 bg-light rounded border">
+              <div class="row g-2 text-sm">
+                <div class="col-6"><strong>Customer:</strong> {{ activeModalQuotation()?.customer_name || 'Valued Client' }}</div>
+                <div class="col-6"><strong>Destination:</strong> {{ activeModalQuotation()?.destination || 'Custom Tour' }}</div>
+                <div class="col-6"><strong>Total Amount:</strong> ₹{{ activeModalQuotation()?.final_amount | number:'1.2-2' }}</div>
+                <div class="col-6"><strong>Version:</strong> v{{ activeModalQuotation()?.version || 1 }}.0</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold text-slate-700">
+                @if (activeModalAction() === 'approve') {
+                  Approval Comments / Internal Note (Optional)
+                } @else {
+                  Rejection Reason / Revision Feedback <span class="text-danger">*</span>
+                }
+              </label>
+              <textarea class="form-control" rows="3" [ngModel]="modalComments()" (ngModelChange)="modalComments.set($event)" placeholder="Enter feedback for sales executive or internal audit trail..."></textarea>
+            </div>
+          </div>
+          <div class="modal-footer border-top p-3 bg-light">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeModal()">Cancel</button>
+            <button type="button" class="btn fw-bold px-4" [class.btn-success]="activeModalAction() === 'approve'" [class.btn-danger]="activeModalAction() === 'reject'" (click)="submitModalAction()">
+              @if (activeModalAction() === 'approve') {
+                <i class="bi bi-check-lg me-1"></i> Confirm Approval
+              } @else {
+                <i class="bi bi-x-lg me-1"></i> Submit Rejection
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

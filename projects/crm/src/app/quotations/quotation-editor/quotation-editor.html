@@ -5,8 +5,24 @@
       <h2 class="fw-bold text-slate-800 mb-1">{{ isEditMode() ? 'Edit Quotation #' + quotationId() : 'Create New Quotation' }}</h2>
       <p class="text-slate-500 mb-0">Build itemized price proposals & day-wise itinerary timelines for travel prospects</p>
     </div>
-    <div class="d-flex gap-2">
-      <a routerLink="/quotations" class="btn btn-outline-secondary px-3 py-2 fw-medium">Cancel</a>
+    <div class="d-flex gap-2 align-items-center">
+      @if (isEditMode() && quotation()) {
+        <!-- Manager Approval Action Buttons in Edit View -->
+        @if (isManagerOrAdmin() && quotation()?.approval_status === 'pending_approval') {
+          <button type="button" class="btn btn-success px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1" (click)="approveQuotation()">
+            <i class="bi bi-check-lg"></i> Approve
+          </button>
+          <button type="button" class="btn btn-danger px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1" (click)="rejectInternal()">
+            <i class="bi bi-x-lg"></i> Reject (Revision)
+          </button>
+        }
+        @if (quotation()?.approval_status === 'rejected_internal') {
+          <button type="button" class="btn btn-warning text-dark px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1" (click)="submitApproval()">
+            <i class="bi bi-send-check"></i> Resubmit for Approval
+          </button>
+        }
+      }
+      <a [routerLink]="['/quotations']" [queryParams]="{ tab: returnTab(), highlight: quotationId() }" class="btn btn-outline-secondary px-3 py-2 fw-medium">Cancel</a>
       <button type="button" class="btn btn-primary px-4 py-2 fw-semibold" (click)="onSubmit()" [disabled]="isSaving()">
         @if (isSaving()) {
           <span class="spinner-border spinner-border-sm me-2"></span> Saving...
@@ -16,6 +32,69 @@
       </button>
     </div>
   </div>
+
+  <!-- Master Catalog Selection Modal -->
+  @if (showMasterCatalogModal()) {
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title fw-bold">
+              <i class="bi bi-journal-bookmark me-2"></i> Select from Master Activity Catalog
+            </h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeMasterCatalogModal()"></button>
+          </div>
+          <div class="modal-body p-3">
+            @if (masterActivities().length === 0) {
+              <div class="text-center py-4 text-slate-500">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                No approved master activities found for this destination.
+              </div>
+            } @else {
+              <div class="list-group">
+                @for (act of masterActivities(); track act.id) {
+                  <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-3">
+                    <div>
+                      <div class="fw-bold text-slate-800 fs-6">{{ act.title }}</div>
+                      <div class="text-xs text-slate-500 mb-1">
+                        <span class="badge bg-light text-dark border me-1">{{ act.category || 'Sightseeing' }}</span>
+                        <span class="me-2"><i class="bi bi-geo-alt me-1"></i>{{ act.destination }}</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ act.duration_minutes || 120 }} mins</span>
+                      </div>
+                      @if (act.description) {
+                        <p class="mb-0 text-slate-600 text-xs line-clamp-2">{{ act.description }}</p>
+                      }
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary fw-semibold flex-shrink-0 ms-3" (click)="insertMasterActivity(act)">
+                      <i class="bi bi-plus-lg me-1"></i> Insert Activity
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+          <div class="modal-footer bg-light p-2">
+            <button type="button" class="btn btn-secondary btn-sm" (click)="closeMasterCatalogModal()">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isEditMode() && quotation()?.approval_status === 'rejected_internal') {
+    <div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
+      <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-exclamation-octagon-fill fs-4 text-warning-emphasis"></i>
+        <div>
+          <h6 class="fw-bold text-warning-emphasis mb-1">Manager Revision Requested</h6>
+          <p class="mb-1 text-dark small">This quotation was returned by Manager for corrections before customer delivery.</p>
+          <button type="button" class="btn btn-sm btn-dark mt-1" (click)="submitApproval()">
+            <i class="bi bi-arrow-repeat me-1"></i> Resubmit for Approval
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (errorMessage()) {
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
@@ -54,9 +133,20 @@
                   </select>
                 </div>
                 <div class="col-12 col-md-6">
+                  <label class="form-label text-slate-700 fw-medium">Load Master Package Template (Optional)</label>
+                  <select class="form-select bg-light-subtle border-primary text-primary fw-bold" (change)="onMasterPackageSelect($any($event.target).value)">
+                    <option value="">-- 1-Click Load Master Package Template --</option>
+                    @for (p of packages(); track p.id) {
+                      <option [value]="p.id">{{ p.name }} ({{ p.days }}D/{{ p.nights }}N - ₹{{ p.price }})</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="col-12 col-md-6">
                   <label class="form-label text-slate-700 fw-medium">Customer Full Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" formControlName="customer_name" placeholder="e.g. Rahul Sharma">
                 </div>
+
 
                 <div class="col-12 col-md-4">
                   <label class="form-label text-slate-700 fw-medium">Customer Email</label>
@@ -176,7 +266,16 @@
                 @for (dayCtrl of daysFormArray.controls; track $index) {
                   <div [formGroupName]="$index" class="p-3 mb-3 border rounded-3 bg-white">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                      <span class="badge bg-slate-800 text-white px-2-5 py-1">Day {{ dayCtrl.get('day_number')?.value }}</span>
+
+                      <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-slate-800 text-white px-2-5 py-1">Day {{ dayCtrl.get('day_number')?.value }}</span>
+                        <button type="button" class="btn btn-sm btn-outline-info py-0-5 px-2 text-xs" (click)="openMasterCatalogModal($index)">
+                          <i class="bi bi-journal-bookmark me-1"></i> Add from Master Catalog
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0-5 px-2 text-xs" (click)="saveDayAsMaster($index)">
+                          <i class="bi bi-star me-1"></i> Save to Master Catalog
+                        </button>
+                      </div>
                       <button type="button" class="btn btn-sm btn-outline-danger border-0" (click)="removeDay($index)" title="Remove Day">
                         <i class="bi bi-trash"></i>
                       </button>
@@ -199,6 +298,7 @@
               </div>
             </div>
           </div>
+
 
           <!-- Section 4: Terms & Conditions -->
           <div class="card border-0 shadow-sm rounded-3 bg-white mb-4">
@@ -269,7 +369,7 @@
                 <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" [disabled]="isSaving()">
                   <i class="bi bi-save me-1"></i> {{ isEditMode() ? 'Update Quotation' : 'Create Quotation' }}
                 </button>
-                <a routerLink="/quotations" class="btn btn-outline-secondary">Back to List</a>
+                <a [routerLink]="['/quotations']" [queryParams]="{ tab: returnTab(), highlight: quotationId() }" class="btn btn-outline-secondary">Back to List</a>
               </div>
             </div>
           </div>
